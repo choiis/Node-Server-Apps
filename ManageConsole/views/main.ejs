@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>채팅서버 관리콘솔</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+	// 페이지 로딩이 완료되고, jQuery 스크립트 실행된다
+	$(document).ready(function() {
+		
+		$('#brth').datepicker({
+			dateFormat: 'yymmdd',	
+			numberOfMonths : 1,
+			changeMonth : true,
+			changeYear : true
+		});
+		
+		callInfo();
+		
+		fileList();
+	});
+	
+	// ajax 반복호출
+	function callInfo() {
+		setInterval(function() {
+   			
+   			directionCount();
+   			chattingCount();
+   			loginCount();
+		}, 2000);
+	};
+	
+	// directio수 구하기
+	function directionCount() {
+	
+		$.ajax({
+		    url : "/directionCount",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({}),
+		    contentType:"application/json",
+		    success : function(data) {
+				$("#directions").text(data[0].cnt);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+	
+	// chatting수 구하기
+	function chattingCount() {
+	
+		$.ajax({
+		    url : "/chattingCount",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({}),
+		    contentType:"application/json",
+		    success : function(data) {
+				$("#chattings").text(data[0].cnt);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+	
+	function loginCount() {
+	
+		$.ajax({
+		    url : "/loginCount",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({}),
+		    contentType:"application/json",
+		    success : function(data) {
+				$("#members").text(data[0].cnt);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+	
+	// 파일리스트
+	function fileList() {
+		$.ajax({
+		    url : "/file",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({}),
+		    contentType:"application/json",
+		    success : function(data) {
+				var html = "";
+			
+				$.each(data, function(index, item) {
+					html += '<tr>';
+	            	html += '<td scope="col" width="50">' + index + '</td>';
+	            	html += '<td scope="col" width="100"><a href="/fileDown/' + item + '">' + item + '</a></td>';
+	           		html += '</tr>';
+				});
+				
+		        $("#viewTbody").html(html);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+</script>
+	<div class="container">
+		<header>
+			<h1>관리콘솔</h1>
+		</header>
+		<section>
+			<div id="container_demo">
+				<div id="wrapper">
+					<div id="chatting_data" class="animate form">
+						<h3>접속자 수</h3>
+						<h3 id="members">명</h3>
+						<!--
+							<label for="members" class="members" data-icon="u"> 
+							</label> <input id="members" name="members" required="required"
+								type="text" />
+						-->	
+						<br>
+						<h3>1초당 지시패킷</h3>
+						<h3 id="directions"></h3>
+						<br>	
+						<h3>1초당 채팅패킷</h3>
+						<h3 id="chattings"></h3>	
+					</div>
+				</div>
+				<div id="wrapper">
+				<table border = "1">
+				<colgroup>
+					<col width="50">
+					<col width="100">		
+				</colgroup>
+				<thead>
+				<tr>
+					<th scope="col">번호</th>
+					<th scope="col">파일명</th>
+				</tr>
+				</thead>
+				<tbody id="viewTbody">
+				</tbody>
+				</table>
+				</div>
+				<br>데이트픽커<input type="text" id="brth" name="brth" maxlength="8">
+			</div>
+		</section>
+	</div>
+</body>
+</html>

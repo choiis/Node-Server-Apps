@@ -1,0 +1,24 @@
+{
+  "name": "package.json",
+  "version": "1.0.0",
+  "description": "Created with [Nodeclipse](https://github.com/Nodeclipse/nodeclipse-1)\r  ([Eclipse Marketplace](http://marketplace.eclipse.org/content/nodeclipse), [site](http://www.nodeclipse.org))",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.6.1",
+    "errorhandler": "^1.5.0",
+    "express": "^4.16.4",
+    "express-error-handler": "^1.1.0",
+    "express-session": "^1.15.6",
+    "mongodb": "^3.1.13",
+    "mssql": "^4.3.2",
+    "mysql": "^2.16.0",
+    "serve-static": "^1.13.2"
+  }
+}

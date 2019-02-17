@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>채팅서버 관리콘솔</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+	// 페이지 로딩이 완료되고, jQuery 스크립트 실행된다
+	$(document).ready(function() {
+		
+		
+		// 로그인 버튼을 클릭할때 이벤트 발생
+		$("#passwd").on("keyup", function(key) {
+			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
+				// 로그인 함수
+				login();
+			}
+		});
+		
+		// 로그인 버튼을 클릭할때 이벤트 발생
+		$("#login_button").on("click", function(e) {
+			
+			login();
+		});
+	});
+	
+	
+	// 로그인 함수
+	function login() {
+		
+		if(!fn_PreLogin()) {
+			return ;
+		}
+		
+		var sendData = {
+        	"userid" : $("#userid").val(),
+        	"password" : $("#passwd").val()
+        };
+		
+		$.ajax({
+		    url : "/login",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify(sendData),
+		    contentType:"application/json",
+		    success : function(data) {
+				if(data.length >= 1) {
+					location.href='/main';
+				} else {
+					alert("아이디와 비밀번호를 확인해 주세요");
+				}
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+		
+	
+	}
+	
+	fn_PreLogin = function() {
+			
+		if(gfn_isNull($("#userid").val())) {
+			alert("아이디를 입력하세요");
+			return false;
+		}
+			
+		if(gfn_isNull($("#passwd").val())) {
+			alert("비밀번호를 입력하세요");
+			return false;
+		}
+			
+		if($("#passwd").val().length < 4) {
+			alert("비밀번호는 네자리 이상 입력해 주세요");
+			return false;
+		}
+			
+		return true;
+	};
+	
+	/** null 체크*/
+	var gfn_isNull = function(obj) {
+
+		if(obj == undefined) {
+			return true;
+		} else if(obj == null) {
+			return true;
+		} else if(obj === null) {
+			return true;
+		} else if(typeof obj == "string") {
+			if(obj === "") {
+				return true;
+			}
+		} else if(typeof obj == "object") {
+			if(obj.length == 0) {
+				return true;
+			}
+		}
+		return false;
+	};
+	
+</script>
+	<div class="container">
+		<header>
+			<h1>관리콘솔 로그인 화면</h1>
+		</header>
+		<section>
+			<div id="container_demo">
+				<div id="wrapper">
+					<div id="login" class="animate form">
+						<form id="form" action="/common/login.do" method="post">
+							<h1>Log in</h1>
+							<p>
+								<label for="userId" class="userId" data-icon="u"> 아이디를
+									입력하세요 </label> <input id="userid" name="userid" required="required"
+									type="text" placeholder="id 입력" />
+							</p>
+							<p>
+								<label for="password" class="youpasswd" data-icon="p">
+									비밀번호를 입력하세요 </label> <input id="passwd" name="passwd"
+									required="required" type="password" placeholder="pw 입력" />
+							</p>
+							<p class="login button">
+								<button id="login_button" type="button" >로그인</button>
+							</p>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</body>
+</html>
