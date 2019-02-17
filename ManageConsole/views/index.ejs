@@ -5,6 +5,9 @@
 <title>채팅서버 관리콘솔</title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+<style type="text/css">
+<%- myCss.style %>
+</style>
 </head>
 <body>
 <script type="text/javascript">
@@ -113,7 +116,7 @@
 			<div id="container_demo">
 				<div id="wrapper">
 					<div id="login" class="animate form">
-						<form id="form" action="/common/login.do" method="post">
+						<form id="form" method="post">
 							<h1>Log in</h1>
 							<p>
 								<label for="userId" class="userId" data-icon="u"> 아이디를

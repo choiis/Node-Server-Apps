@@ -43,9 +43,15 @@ app.use(expressSession({
 
 var directory = 'C:/Users/최인성/Desktop/인성';
 
+var cssSheet = {
+	style : fs.readFileSync('views/style.css','utf8')
+};
 // 기본 Path
 app.get('/', function (req, res) {
-	res.render('index');
+	
+	res.render('index',{
+		myCss: cssSheet
+	});
 });
 
 router.route('/login').post(function(req, res) {
@@ -56,7 +62,9 @@ router.route('/login').post(function(req, res) {
 			// 세션저장
 			req.session.user = {
 				userid : data[0].userid,
-				nickname : data[0].nickname
+				nickname : data[0].nickname,
+				lastlogdate : data[0].lastlogdate,
+				adminyn : data[0].adminyn
 			};
 			res.send(data);
 		} else {
@@ -66,17 +74,43 @@ router.route('/login').post(function(req, res) {
 	});
 });
 
+router.route('/logout').get(function(req, res) {
+	
+	if(req.session.user) {
+		
+		req.session.destroy(function(err) {
+			res.render('index',{
+				myCss: cssSheet
+			});
+		});
+	} else {
+		res.render('index',{
+			myCss: cssSheet
+		});
+	}
+});
+
 router.route('/main').get(function(req, res) {
 	if(req.session.user) { // 세선정보 있음
 		// var context = {nickName:req.session.user.nickname};
 		//res.render('main');
-		var context = {nickName:req.session.user.nickname};
-		req.app.render('main', context, function(err, html) {
-			
-			res.end(html);
-		});
+		
+		if(req.session.user.adminyn === 1) {
+
+			res.render('main',{
+				myCss: cssSheet, 
+				nickname : req.session.user.nickname,
+				lastlogdate : req.session.user.lastlogdate.substr(0,10),
+				lastlogtime : req.session.user.lastlogdate.substr(11,8)
+			});	
+		} else {
+			res.render('construction',{myCss: cssSheet});
+		}	
+		
 	} else { // 세션정보 없음
-		res.render('index');
+		res.render('index',{
+			myCss: cssSheet
+		});
 	}
 	
 });
@@ -117,6 +151,10 @@ router.route('/fileDown/:name').get(function(req, res) {
 });
 
 app.use('/',router);
+
+app.all('*',function(req,res) {
+	res.status(404).send('<h1>Page Not Found</h1>');
+});
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');

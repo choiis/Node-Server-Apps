@@ -5,6 +5,9 @@
 <title>채팅서버 관리콘솔</title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+<style type="text/css">
+<%- myCss.style %>
+</style>
 </head>
 <body>
 <script type="text/javascript">
@@ -127,6 +130,11 @@
 		<section>
 			<div id="container_demo">
 				<div id="wrapper">
+					<a href='/logout'>로그아웃</a>
+					<h3>접속자 닉네임 : <%- nickname %></h3>
+					<h3>최근 로그인 날짜 : <%- lastlogdate %></h3>
+					<h3>최근 로그인 시간 : <%- lastlogtime %></h3>
+					
 					<div id="chatting_data" class="animate form">
 						<h3>접속자 수</h3>
 						<h3 id="members">명</h3>
