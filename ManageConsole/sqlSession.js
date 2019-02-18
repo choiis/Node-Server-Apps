@@ -6,7 +6,7 @@ var mssql = require('mssql');
 var config = {
     user: '23460',
     password: 'qw1324..',
-    server: '172.30.1.50',
+    server: '10.10.55.62',
     port : 1433,
     database: 'server_DB'
 };

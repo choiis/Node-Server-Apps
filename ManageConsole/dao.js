@@ -60,6 +60,42 @@ var chattingCount = function(requestBody, callback) {
 	});
 };
 
+var directionCountPerDay = function(requestBody, callback) {
+	
+	// Query 
+	var request = new mssql.Request();
+
+	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
+	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
+	request.query('select count(*) as cnt from cso_direction where logdate between @fromTime and @toTime', function (err, result) {
+	
+		// ... error checks 
+		if(!err) {
+			callback(result.recordset);	    	
+		} else { 
+			console.log("error !");	
+		} 
+	});
+};
+
+var chattingCountPerDay = function(requestBody, callback) {
+	
+	// Query 
+	var request = new mssql.Request();
+
+	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
+	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
+	request.query('select count(*) as cnt from cso_chatting where logdate between @fromTime and @toTime', function (err, result) {
+	
+		// ... error checks 
+		if(!err) {
+			callback(result.recordset);	    	
+		} else { 
+			console.log("error !");	
+		} 
+	});
+};
+
 var loginCount = function(requestBody, callback) {
 	
 	// Query 
@@ -75,7 +111,10 @@ var loginCount = function(requestBody, callback) {
 		} 
 	});
 };
+
 module.exports.selectId = selectId;
 module.exports.directionCount = directionCount;
 module.exports.chattingCount = chattingCount;
+module.exports.directionCountPerDay = directionCountPerDay;
+module.exports.chattingCountPerDay = chattingCountPerDay;
 module.exports.loginCount = loginCount;

@@ -22,6 +22,12 @@ var gfn_getNowTime = function() {
 	return year + "-" + month + "-" + day + " " +hour + ":" + minute + ":" + second;
 };
 
+// 8자리 날짜를 mssql date 포맷으로
+var gfn_stringToDate = function(dateString) {
+	
+	return dateString.substr(0, 4) + "-" + dateString.substr(4, 2) + "-" + dateString.substr(6, 2);
+};
+
 var gfn_getSecondInterval = function() {
 	
 	var d1 = new Date();
@@ -67,18 +73,16 @@ var gfn_getSecondInterval = function() {
 /** null 체크*/
 var gfn_isNull = function(obj) {
 
-	if(obj == undefined) {
-		return true;
-	} else if(obj == null) {
+	if(obj === undefined) {
 		return true;
 	} else if(obj === null) {
 		return true;
-	} else if(typeof obj == "string") {
+	} else if(typeof obj === "string") {
 		if(obj === "") {
 			return true;
 		}
-	} else if(typeof obj == "object") {
-		if(obj.length == 0) {
+	} else if(typeof obj === "object") {
+		if(obj.length === 0) {
 			return true;
 		}
 	}
@@ -93,6 +97,7 @@ var gfn_isNumber = function(obj) {
 };
 
 module.exports.gfn_getNowTime = gfn_getNowTime;
+module.exports.gfn_stringToDate = gfn_stringToDate;
 module.exports.gfn_getSecondInterval = gfn_getSecondInterval;
 module.exports.gfn_isNull = gfn_isNull;
 module.exports.gfn_isNumber = gfn_isNumber;

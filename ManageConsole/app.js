@@ -9,17 +9,18 @@ var bodyParser = require('body-parser')
   , expressSession = require('express-session')
   , static = require('serve-static')
   , errorHandler = require('errorhandler');
-
 var fs = require('fs'); // 파일목록 탐색
 var util = require('util');
 var mime = require('mime');
-
+var pm2 = require('pm2');
 var dao = require('./dao');
-
 // 익스프레스 객체 생성
 var app = express();
 
 var router = express.Router();
+
+var net=require('net');
+var client = new net.Socket();
 
 //===== 뷰 엔진 설정 =====//
 app.set('views', __dirname + '/views');
@@ -41,19 +42,56 @@ app.use(expressSession({
 	saveUninitialized : true
 }));
 
-var directory = 'C:/Users/최인성/Desktop/인성';
+// 서버 파일 디렉토리
+var directory = 'D:/SocketApplication/Server/Server/Downloads';
 
 var cssSheet = {
 	style : fs.readFileSync('views/style.css','utf8')
 };
+
+// Process 연결
+pm2.connect(function(err) {
+	
+});
+
+//메모리 CPU 모니터
+router.route('/monitor').post(function(req, res) {
+	
+	pm2.describe("Server.exe", function(err, des) {
+		res.send(des);
+	});
+});
+
+//메모리 CPU 모니터
+router.route('/serverSwitch').post(function(req, res) {
+	if(req.body.off === "1") { // 서버켜기
+		pm2.start("D:/SocketApplication/Server/Release/Server.exe",{
+			name : "Server.exe",
+			watch : true
+		}, function(err, apps) {
+			// 채팅서버는 같은 PC에서 동작한다
+			// 서버 on 후에 연결한다
+			client.connect(1234, 'localhost');
+			
+			res.send({flag:0});
+		});
+	} else {
+		pm2.delete("Server.exe", function(err, des) {
+			console.log("process off");
+			res.send({flag:1});
+		});
+	}
+});
+
 // 기본 Path
 app.get('/', function (req, res) {
-	
+
 	res.render('index',{
 		myCss: cssSheet
 	});
 });
 
+// 로그인 router
 router.route('/login').post(function(req, res) {
 	
 	var rows = dao.selectId(req.body , function(data) {
@@ -74,6 +112,7 @@ router.route('/login').post(function(req, res) {
 	});
 });
 
+// 로그아웃 router
 router.route('/logout').get(function(req, res) {
 	
 	if(req.session.user) {
@@ -90,11 +129,10 @@ router.route('/logout').get(function(req, res) {
 	}
 });
 
+// 메인화면 router
 router.route('/main').get(function(req, res) {
 	if(req.session.user) { // 세선정보 있음
-		// var context = {nickName:req.session.user.nickname};
-		//res.render('main');
-		
+
 		if(req.session.user.adminyn === 1) {
 
 			res.render('main',{
@@ -115,43 +153,113 @@ router.route('/main').get(function(req, res) {
 	
 });
 
+// 멤버 강퇴
+router.route('/ban').post(function(req, res) {
+		if(req.session.user) { // 세선정보 있음
+		var banName = new Buffer(req.body.banName, "utf8");
+		// Chatting Server의 Packet유형으로 전달한다
+		var packet = new Buffer(banName.length + 10);
+		// 0 2번째 short 바디사이즈
+		packet[0] = banName.length + 10;
+		// 6 10번째 direction
+		packet[6] = 21; // direction
+		for(var i = 0; i < banName.length; i++) {
+			packet[i + 10] = banName[i]; // msg
+		}
+		client.write(packet);
+	
+		client.on('data', function(data) {
+		
+		});
+	}
+});
+
+// 1초당 지시패킷
 router.route('/directionCount').post(function(req, res) {
-	dao.directionCount(req.body , function(data) {
-		res.send(data);
-	});
+	if(req.session.user) { // 세선정보 있음
+		dao.directionCount(req.body , function(data) {
+			res.send(data);
+		});
+	}
 });
 
-
+// 1초당 채팅패킷
 router.route('/chattingCount').post(function(req, res) {	
-	dao.chattingCount(req.body , function(data) {
-		res.send(data);
-	});
+	if(req.session.user) { // 세선정보 있음
+		dao.chattingCount(req.body , function(data) {
+			res.send(data);
+		});
+	}
 });
 
+//1초당 지시패킷
+router.route('/directionCountPerDay').post(function(req, res) {
+	if(req.session.user) { // 세선정보 있음
+		dao.directionCountPerDay(req.body , function(data) {
+			res.send(data);
+		});
+	}
+});
+
+// 1초당 채팅패킷
+router.route('/chattingCountPerDay').post(function(req, res) {	
+	if(req.session.user) { // 세선정보 있음
+		dao.chattingCountPerDay(req.body , function(data) {
+			res.send(data);
+		});
+	}
+});
+
+// 로그인 유저수
 router.route('/loginCount').post(function(req, res) {	
-	dao.loginCount(req.body , function(data) {
-		res.send(data);
-	});
+	if(req.session.user) { // 세선정보 있음
+		/*
+		// Chatting Server의 Packet유형으로 전달한다
+		var packet = new Buffer(20);
+		// 0 2번째 short 바디사이즈
+		packet[0] = 20;
+		// 6 10번째 direction
+		packet[6] = 20; // direction
+		client.write(packet);
+
+		client.on('data', function(data) {
+			var cntByte = data.slice(2, 6);
+			var json = {};
+			json.cnt = cntByte.readUInt8();
+			res.sendStatus(200).json(json);
+		});
+		*/
+		dao.loginCount(req.body , function(data) {
+		 	res.send(data);
+		});
+	}
 });
 
+// 서버의 파일 확인
 router.route('/file').post(function(req, res) {
-	var fs = require('fs');
+	if(req.session.user) { // 세선정보 있음
+		var fs = require('fs');
 	 
-	fs.readdir(directory, function(error, filelist){
-		res.send(filelist);
-	});
-	
+		fs.readdir(directory, function(error, filelist){
+			res.send(filelist);
+		});
+	}
 });
 
+// 파일 다운로드
 router.route('/fileDown/:name').get(function(req, res) {
-	var orgName = req.params.name;
-	var fileDir = directory + "/" + orgName;
+	if(req.session.user) { // 세선정보 있음
+		var orgName = req.params.name;
+		var fileDir = directory + "/" + orgName;
 	
-	res.download(fileDir);
+		res.download(fileDir);
+	}
 });
 
+// 라우터 등록
 app.use('/',router);
 
+// 예외화면
 app.all('*',function(req,res) {
 	res.status(404).send('<h1>Page Not Found</h1>');
 });
