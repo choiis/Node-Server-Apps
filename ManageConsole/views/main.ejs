@@ -46,13 +46,13 @@
 			serverSwitch($("#switchNumber").val());
 		});
 
-		$("#ban").on("keyup", function(key) {
+		$("#banName").on("keyup", function(key) {
 			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
 				banUser();
 			}
 		});
 
-		$("#ban").on("click", function(e) {
+		$("#banButton").on("click", function(e) {
 			banUser();
 		});						
 	});
@@ -188,11 +188,9 @@
 		    cache : false,
 		    data : JSON.stringify({}),
 		    contentType:"application/json",
-		    success : function(data) {	
-	    		
-			    $("#memory").text(data[0].monit.memory);
-				$("#cpu").text(data[0].monit.cpu);		
-		    				
+		    success : function(data) {
+			    $("#memory").text((data[0].monit.memory / 1024) + " K");
+				$("#cpu").text(Math.round(data[0].monit.cpu / 10) + " %");	
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -246,6 +244,12 @@
 				} else {
 					$("#serverSwitch").text("서버켜기");
 					$("#switchNumber").val("1");
+					
+					$("#directions").text("0");
+					$("#chattings").text("0");
+					$("#members").text("0");
+					$("#memory").text("0 K");
+					$("#cpu").text("0 %");	
 				}
 			},
 		    error : function(data, status, error) {
@@ -264,13 +268,9 @@
 		    data : JSON.stringify({banName : $("#banName").val()}),
 		    contentType:"application/json",
 		    success : function(data) {
-				if(data.flag === 0) {
-					$("#serverSwitch").text("서버끄기");
-					$("#switchNumber").val("0");
-				} else {
-					$("#serverSwitch").text("서버켜기");
-					$("#switchNumber").val("1");
-				}
+				
+				$("#banName").val("");
+				alert("강퇴!");
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -321,7 +321,7 @@
 						<h4>강퇴시킬 닉네임</h4>
 						<input id="banName" name="banName"
 								type="text"/>
-						<button id="ban" type="button">강퇴</button>
+						<button id="banButton" type="button">강퇴</button>
 					</form>
 				</div>
 				<div id="wrapper">

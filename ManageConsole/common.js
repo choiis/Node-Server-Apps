@@ -95,9 +95,15 @@ var gfn_isNumber = function(obj) {
 	var regex= /[0-9]/;
 	return regex.test(obj);
 };
-
+// C++ Server가 받아줄 상수
+var USERCNT = 20;
+var BAN = 21;
+var NODE_PORT = 3000;
 module.exports.gfn_getNowTime = gfn_getNowTime;
 module.exports.gfn_stringToDate = gfn_stringToDate;
 module.exports.gfn_getSecondInterval = gfn_getSecondInterval;
 module.exports.gfn_isNull = gfn_isNull;
-module.exports.gfn_isNumber = gfn_isNumber;
+// 상수 정의
+module.exports.USERCNT = USERCNT;
+module.exports.BAN = BAN;
+module.exports.NODE_PORT = NODE_PORT;
