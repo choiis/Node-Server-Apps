@@ -96,14 +96,16 @@ var gfn_isNumber = function(obj) {
 	return regex.test(obj);
 };
 // C++ Server가 받아줄 상수
-var USERCNT = 20;
+var CALLCOUNT = 20;
 var BAN = 21;
+var EXIT = 22;
 var NODE_PORT = 3000;
 module.exports.gfn_getNowTime = gfn_getNowTime;
 module.exports.gfn_stringToDate = gfn_stringToDate;
 module.exports.gfn_getSecondInterval = gfn_getSecondInterval;
 module.exports.gfn_isNull = gfn_isNull;
 // 상수 정의
-module.exports.USERCNT = USERCNT;
+module.exports.CALLCOUNT = CALLCOUNT;
 module.exports.BAN = BAN;
+module.exports.EXIT = EXIT;
 module.exports.NODE_PORT = NODE_PORT;

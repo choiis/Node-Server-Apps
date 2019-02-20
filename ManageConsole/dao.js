@@ -24,42 +24,6 @@ var selectId = function(requestBody, callback) {
 	});
 };
 
-var directionCount = function(requestBody, callback) {
-	
-	// Query 
-	var request = new mssql.Request();
-	var times = common.gfn_getSecondInterval();
-	request.input('fromTime', times.fromTime);
-	request.input('toTime',  times.toTime);
-	request.query('select count(*) as cnt from cso_direction where logdate between @fromTime and @toTime', function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log("error !");	
-		} 
-	});
-};
-
-var chattingCount = function(requestBody, callback) {
-	
-	// Query 
-	var request = new mssql.Request();
-	var times = common.gfn_getSecondInterval();
-	request.input('fromTime', times.fromTime);
-	request.input('toTime',  times.toTime);
-	request.query('select count(*) as cnt from cso_chatting where logdate between @fromTime and @toTime', function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log("error !");	
-		} 
-	});
-};
-
 var directionCountPerDay = function(requestBody, callback) {
 	
 	// Query 
@@ -96,13 +60,15 @@ var chattingCountPerDay = function(requestBody, callback) {
 	});
 };
 
-var loginCount = function(requestBody, callback) {
+var chattingStatistics = function(requestBody, callback) {
 	
 	// Query 
 	var request = new mssql.Request();
+
+	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
+	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
 	
-	request.query('select count(*) as cnt from cso_id where loginyn = 1 ', function (err, result) {
-	
+	request.query('select count(*) as cnt, cnt_hour  from (select DATEPART(hour,logdate) as cnt_hour from cso_chatting where logdate between @fromTime and @toTime) G group by G.cnt_hour', function (err, result) {
 		// ... error checks 
 		if(!err) {
 			callback(result.recordset);	    	
@@ -113,8 +79,6 @@ var loginCount = function(requestBody, callback) {
 };
 
 module.exports.selectId = selectId;
-module.exports.directionCount = directionCount;
-module.exports.chattingCount = chattingCount;
 module.exports.directionCountPerDay = directionCountPerDay;
 module.exports.chattingCountPerDay = chattingCountPerDay;
-module.exports.loginCount = loginCount;
+module.exports.chattingStatistics = chattingStatistics;

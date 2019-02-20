@@ -28,9 +28,9 @@ var serverSwitch = false;
 
 client.on('close',function() {
 	serverSwitch = false;
-	console.log("socket close");
+	console.log("server off");
 });
-//===== 뷰 엔진 설정 =====//
+// ===== 뷰 엔진 설정 =====//
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
@@ -48,7 +48,7 @@ app.use(expressSession({
 }));
 
 // 서버 파일 디렉토리
-var directory = 'D:/SocketApplication/Server/Server/Downloads';
+var directory = 'Downloads';
 
 var cssSheet = {
 	style : fs.readFileSync('views/style.css','utf8')
@@ -59,7 +59,7 @@ pm2.connect(function(err) {
 	
 });
 
-//메모리 CPU 모니터
+// 메모리 CPU 모니터
 router.route('/monitor').post(function(req, res) {
 	
 	pm2.describe("Server.exe", function(err, des) {
@@ -68,7 +68,7 @@ router.route('/monitor').post(function(req, res) {
 	});
 });
 
-//메모리 CPU 모니터
+// 메모리 CPU 모니터
 router.route('/serverSwitch').post(function(req, res) {
 	if(req.body.off === "1") { // 서버켜기
 		pm2.start("D:/SocketApplication/Server/Release/Server.exe",{
@@ -79,6 +79,7 @@ router.route('/serverSwitch').post(function(req, res) {
 		}, function(err, apps) {
 			// 채팅서버는 같은 PC에서 동작한다
 			// 서버 on 후에 연결한다
+			console.log("server on");
 			client.connect(1234, 'localhost');
 			serverSwitch = true;
 			
@@ -86,18 +87,29 @@ router.route('/serverSwitch').post(function(req, res) {
 		});
 	} else {
 		
-		client.destroy();
 		serverSwitch = false;
-		
-		pm2.delete("Server.exe", function(err, des) {
-			res.send({flag:1});
+// client.destroy();
+//		
+// pm2.delete("Server.exe", function(err, des) {
+// res.send({flag:1});
+// });
+		pm2.stop("Server.exe" , function(err) {
+			
 		});
+		var packet = new Buffer(20);
+		// 0 2번째 short 바디사이즈
+		packet[0] = 20;
+		// 6 10번째 direction
+		packet[6] = common.EXIT; // direction = > USERCNT
+		client.write(packet, function() {
+			client.destroy();
+		});
+		res.send({flag:1});
 	}
 });
 
 // 기본 Path
 app.get('/', function (req, res) {
-
 	res.render('index',{
 		myCss: cssSheet
 	});
@@ -165,6 +177,24 @@ router.route('/main').get(function(req, res) {
 	
 });
 
+// 관리자화면 로딩시 서버 on off 상태 확인
+router.route('/initButton').post(function(req, res) {
+	pm2.describe("Server.exe", function(err, des) {
+		if(!common.gfn_isNull(des[0])) {
+			var json = {
+				"status" : des[0].pm2_env.status
+			};
+			res.status(200).send(json);
+		} else {
+			var json2 = {
+				"status" : "none"
+			};
+			res.status(200).send(json2);
+		}
+		
+	});
+});
+
 // 멤버 강퇴
 router.route('/ban').post(function(req, res) {
 	if(req.session.user) { // 세선정보 있음
@@ -188,73 +218,34 @@ router.route('/ban').post(function(req, res) {
 });
 
 // 1초당 지시패킷
-router.route('/directionCount').post(function(req, res) {
-	if(req.session.user) { // 세선정보 있음
-		
-		if(serverSwitch) { // 서버 켜진 상태
-			dao.directionCount(req.body , function(data) {
-				res.status(200).send(data);
-			});
-		} else { // 서버 꺼진 상태
-			var data = [];
-			data[0] ={};
-			data[0].cnt = 0;
-			res.status(200).send(data);
-		}
-		
-	}
-});
-
-// 1초당 채팅패킷
-router.route('/chattingCount').post(function(req, res) {	
-	if(req.session.user) { // 세선정보 있음
-		if(serverSwitch) { // 서버 켜진 상태
-			dao.chattingCount(req.body , function(data) {
-				res.status(200).send(data);
-			});
-		} else { // 서버 꺼진 상태
-			var data = [];
-			data[0] ={};
-			data[0].cnt = 0;
-			res.status(200).send(data);
-		}
-	}
-});
-
-//1초당 지시패킷
 router.route('/directionCountPerDay').post(function(req, res) {
 	if(req.session.user) { // 세선정보 있음
-		if(serverSwitch) { // 서버 켜진 상태
-			dao.directionCountPerDay(req.body , function(data) {
-				res.status(200).send(data);
-			});
-		} else { // 서버 꺼진 상태
-			var data = [];
-			data[0] ={};
-			data[0].cnt = 0;
+		dao.directionCountPerDay(req.body , function(data) {
 			res.status(200).send(data);
-		}
+		});
 	}
 });
 
 // 1초당 채팅패킷
 router.route('/chattingCountPerDay').post(function(req, res) {	
 	if(req.session.user) { // 세선정보 있음
-		if(serverSwitch) { // 서버 켜진 상태
-			dao.chattingCountPerDay(req.body , function(data) {
-				res.status(200).send(data);
-			});
-		} else { // 서버 꺼진 상태
-			var data = [];
-			data[0] ={};
-			data[0].cnt = 0;
+		dao.chattingCountPerDay(req.body , function(data) {
 			res.status(200).send(data);
-		}
+		});
+	}
+});
+
+// 시간별 통계
+router.route('/chattingStatistics').post(function(req, res) {	
+	if(req.session.user) { // 세선정보 있음
+		dao.chattingStatistics(req.body , function(data) {
+			res.status(200).send(data);
+		});
 	}
 });
 
 // 로그인 유저수
-router.route('/loginCount').post(function(req, res) {	
+router.route('/callCount').post(function(req, res) {	
 	if(req.session.user) { // 세선정보 있음
 		if(serverSwitch) { // 서버 켜진 상태
 			
@@ -262,21 +253,29 @@ router.route('/loginCount').post(function(req, res) {
 			// 0 2번째 short 바디사이즈
 			packet[0] = 20;
 			// 6 10번째 direction
-			packet[6] = common.USERCNT; // direction = > USERCNT
+			packet[6] = common.CALLCOUNT; // direction = > USERCNT
 			client.write(packet, function() {
 			});
 			// send
 			
 			client.on('data', function(data) {
 				// data라는 event를 임시 add 해줬으므로 다쓰고 없앤다
+				var bodySize = data.slice(0, 2).readUInt8();
 				var userCnt = data.slice(2, 6);
-				var arr = {'cnt' : userCnt.readUInt8()};
+				var packetCnt = data.slice(10, bodySize - 1);
+				var arr = {
+					'cnt' : userCnt.readUInt8(),
+					'packet' : packetCnt.toString('utf-8')
+				};
 				res.status(200).send(arr);
 				client.removeAllListeners('data');
 			});
 			// recv
 		} else { // 서버 꺼진 상태
-			var arr = {'cnt':0};
+			var arr = {
+				'cnt': 0,
+				'packet' : "0"		
+			};
 			res.status(200).send(arr);
 		}
 	}

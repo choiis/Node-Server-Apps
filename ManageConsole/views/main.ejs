@@ -23,19 +23,23 @@
 		
 		initDay();
 		
+		initButton();
+		
 		callInfo();
 		
 		fileList();
 		
-		// 로그인 버튼을 클릭할때 이벤트 발생
+		// 데이트픽커 바뀔시 이벤트 발생
 		$("#datePick").on("change", function(e) {
+			chattingStatistics();
 			chattingCountPerDay();
 			directionCountPerDay();
 		});
 		
-		// 로그인 버튼을 클릭할때 이벤트 발생
+		// 데이트픽커 엔터시 이벤트 발생
 		$("#datePick").on("keyup", function(key) {
 			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
+				chattingStatistics();
 				chattingCountPerDay();
 				directionCountPerDay();
 			}
@@ -71,64 +75,47 @@
 		}
 		
 		$('#datePick').val(year + "" + month + "" + day);
+		
+		chattingStatistics();
+	};
+	
+	function initButton() {
+	
+		$.ajax({
+		    url : "/initButton",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({}),
+		    contentType:"application/json",
+		    success : function(data) {
+		    	if(data.status === 'online') {
+		    		$("#serverSwitch").text("서버끄기");
+					$("#switchNumber").val("0");
+		    	}
+			},
+		    error : function(data, status, error) {
+			    var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
 	}
 	
 	// ajax 반복호출
 	function callInfo() {
 		setInterval(function() {
    			if($("#switchNumber").val() === "0" ) {
-   				directionCount();
-   				chattingCount();
-   				loginCount();
+   				callCount();
    				monitor();
+   				fileList();
    			}
    			
 		}, 1000);
 	};
 	
-	// directio수 구하기
-	function directionCount() {
-	
+	function callCount() {
 		$.ajax({
-		    url : "/directionCount",
-		    type : "POST",
-		    dataType : "json",
-		    cache : false,
-		    data : JSON.stringify({}),
-		    contentType:"application/json",
-		    success : function(data) {
-				$("#directions").text(data[0].cnt);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.errorCode + " " + errorData.errorMsg);
-		    }
-		});
-	};
-	
-	// chatting수 구하기
-	function chattingCount() {
-	
-		$.ajax({
-		    url : "/chattingCount",
-		    type : "POST",
-		    dataType : "json",
-		    cache : false,
-		    data : JSON.stringify({}),
-		    contentType:"application/json",
-		    success : function(data) {
-				$("#chattings").text(data[0].cnt);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.errorCode + " " + errorData.errorMsg);
-		    }
-		});
-	};
-	
-	function loginCount() {
-		$.ajax({
-		    url : "/loginCount",
+		    url : "/callCount",
 		    type : "POST",
 		    dataType : "json",
 		    cache : false,
@@ -136,6 +123,12 @@
 		    contentType:"application/json",
 		    success : function(data) {
 				$("#members").text(data.cnt);
+				var packetCnt = parseInt(data.packet);
+				if(isNaN(packetCnt)) {
+					$("#chattings").text("0");
+				} else {
+					$("#chattings").text(packetCnt);
+				}
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -218,7 +211,7 @@
 	            	html += '<td scope="col" width="100"><a href="/fileDown/' + item + '">' + item + '</a></td>';
 	           		html += '</tr>';
 				});
-				
+				$("#viewTbody").empty();
 		        $("#viewTbody").html(html);
 			},
 		    error : function(data, status, error) {
@@ -227,6 +220,34 @@
 		    }
 		});
 	};
+	
+	function chattingStatistics() {
+		$.ajax({
+		    url : "/chattingStatistics",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({date : $("#datePick").val()}),
+		    contentType:"application/json",
+		    success : function(data) {
+				
+				var html = "";
+				$.each(data, function(index, item) {
+					var hour = item.cnt_hour;
+					html += '<tr>';
+	            	html += '<td scope="col" width="100">' + hour +"~" + (hour + 1) + "시" + '</td>';
+	            	html += '<td scope="col" width="200">' + item.cnt + '</a></td>';
+	           		html += '</tr>';
+				});
+				
+		        $("#statisticsBody").html(html);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	}
 	
 	function serverSwitch(switchNumber) {
 		
@@ -305,11 +326,8 @@
 							</label> <input id="members" name="members"
 								type="text"/>
 						-->	
-						<br>
-						<h4>1초당 지시패킷</h4>
-						<h4 id="directions"></h4>
 						<br>	
-						<h4>1초당 채팅패킷</h4>
+						<h4>1초당 패킷 수</h4>
 						<h4 id="chattings"></h4>	
 						
 						<h4>메모리</h4>
@@ -322,9 +340,32 @@
 						<input id="banName" name="banName"
 								type="text"/>
 						<button id="banButton" type="button">강퇴</button>
+						
+						<br>날짜별 조회<input type="text" id="datePick" name="datePick" maxlength="8">
+						<h4>날짜별 지시패킷</h4>
+						<h4 id="directionsPerDay"></h4>
+						<br>	
+						<h4>날짜별  채팅패킷</h4>
+						<h4 id="chattingsPerDay"></h4>	
 					</form>
+						<h4>패킷량 통계</h4>
+						<table border = "1">
+							<colgroup>
+							<col width="100">
+							<col width="200">		
+						</colgroup>
+						<thead>
+						<tr>
+							<th scope="col">시간대</th>
+							<th scope="col">패킷량</th>
+						</tr>
+						</thead>
+						<tbody id="statisticsBody">
+						</tbody>
+					</table>
 				</div>
 				<div id="wrapper">
+				<h4>서버 파일 목록</h4>
 				<table border = "1">
 				<colgroup>
 					<col width="50">
@@ -342,15 +383,6 @@
 				</div>
 				</div>
 				
-				<form id="chatting_data2" class="animate form">
-				<br>날짜별 조회<input type="text" id="datePick" name="datePick" maxlength="8">
-				
-				<h4>날짜별 지시패킷</h4>
-				<h4 id="directionsPerDay"></h4>
-				<br>	
-				<h4>날짜별  채팅패킷</h4>
-				<h4 id="chattingsPerDay"></h4>	
-				</form>
 			</div>
 		</section>
 	</div>
