@@ -2,16 +2,21 @@
  * http://usejsdoc.org/
  */
 var mssql = require('mssql');
+var fs = require('fs'); // 파일목록 탐색
 
-var config = {
-    user: '23460',
-    password: 'qw1324..',
-    server: '10.10.55.62',
-    port : 1433,
-    database: 'server_DB'
-};
+fs.readFile('conf.properties', 'utf8', function(err, data){
+	var json = JSON.parse(data);
 
-// Global connection으로 만듬
-mssql.connect(config);
+	var config = {
+	    user: json.user,
+	    password: json.password,
+	    server: json.server,
+	    port : json.port,
+	    database: json.database
+	};
+
+	// Global connection으로 만듬
+	mssql.connect(config);	
+});
 
 module.exports.mssql = mssql;

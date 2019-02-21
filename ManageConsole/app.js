@@ -7,11 +7,8 @@ var express = require('express')
 var bodyParser = require('body-parser')
   , cookieParser = require('cookie-parser')
   , expressSession = require('express-session')
-  , static = require('serve-static')
   , errorHandler = require('errorhandler');
 var fs = require('fs'); // 파일목록 탐색
-var util = require('util');
-var mime = require('mime');
 var pm2 = require('pm2');
 var dao = require('./dao');
 
@@ -54,8 +51,21 @@ var cssSheet = {
 	style : fs.readFileSync('views/style.css','utf8')
 };
 
-// Process 연결
+// pm2 연결
 pm2.connect(function(err) {
+	
+});
+
+var exelocation;
+
+// 설정파일 읽어들이기
+fs.readFile('conf.properties', 'utf8', function(err, data){
+	var json = JSON.parse(data);
+	exelocation = json.exelocation;
+	// node js listen port는 설정파일에 있다
+	app.listen(json.nodeport, function () {
+		console.log('Example app listening on port ' + json.nodeport + '!');
+	});
 	
 });
 
@@ -68,10 +78,11 @@ router.route('/monitor').post(function(req, res) {
 	});
 });
 
-// 메모리 CPU 모니터
+// 서버 on/off기능 라우터
 router.route('/serverSwitch').post(function(req, res) {
 	if(req.body.off === "1") { // 서버켜기
-		pm2.start("D:/SocketApplication/Server/Release/Server.exe",{
+			
+		pm2.start(exelocation ,{
 			name : "Server.exe",
 			watch : true,
 			autorestart : false,
@@ -82,7 +93,7 @@ router.route('/serverSwitch').post(function(req, res) {
 			console.log("server on");
 			client.connect(1234, 'localhost');
 			serverSwitch = true;
-			
+				
 			res.send({flag:0});
 		});
 	} else {
@@ -96,7 +107,7 @@ router.route('/serverSwitch').post(function(req, res) {
 		pm2.stop("Server.exe" , function(err) {
 			
 		});
-		var packet = new Buffer(20);
+		var packet = Buffer.alloc(20);
 		// 0 2번째 short 바디사이즈
 		packet[0] = 20;
 		// 6 10번째 direction
@@ -198,9 +209,9 @@ router.route('/initButton').post(function(req, res) {
 // 멤버 강퇴
 router.route('/ban').post(function(req, res) {
 	if(req.session.user) { // 세선정보 있음
-		var banName = new Buffer(req.body.banName);
+		var banName = Buffer.from(req.body.banName);
 		// Chatting Server의 Packet유형으로 전달한다
-		var packet = new Buffer(banName.length + 10);
+		var packet = Buffer.alloc(banName.length + 10);
 		// 0 2번째 short 바디사이즈
 		packet[0] = banName.length + 10;
 		// 2 6번째 status = > 이름길이
@@ -241,6 +252,17 @@ router.route('/chattingStatistics').post(function(req, res) {
 		dao.chattingStatistics(req.body , function(data) {
 			res.status(200).send(data);
 		});
+		
+		
+	}
+});
+
+// 채팅수 통계
+router.route('/chattingRanking').post(function(req, res) {	
+	if(req.session.user) { // 세선정보 있음
+		dao.chattingRanking(req.body , function(data) {
+			res.status(200).send(data);
+		});
 	}
 });
 
@@ -249,7 +271,7 @@ router.route('/callCount').post(function(req, res) {
 	if(req.session.user) { // 세선정보 있음
 		if(serverSwitch) { // 서버 켜진 상태
 			
-			var packet = new Buffer(20);
+			var packet = Buffer.alloc(20);
 			// 0 2번째 short 바디사이즈
 			packet[0] = 20;
 			// 6 10번째 direction
@@ -309,6 +331,4 @@ app.all('*',function(req,res) {
 	res.status(404).send('<h1>Page Not Found</h1>');
 });
 
-app.listen(common.NODE_PORT, function () {
-	console.log('Example app listening on port ' + common.NODE_PORT + '!');
-});
+

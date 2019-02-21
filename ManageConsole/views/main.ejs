@@ -30,18 +30,14 @@
 		fileList();
 		
 		// 데이트픽커 바뀔시 이벤트 발생
-		$("#datePick").on("change", function(e) {
-			chattingStatistics();
-			chattingCountPerDay();
-			directionCountPerDay();
+		$("#datePickButton").on("click", function(e) {
+			datePickTrans($("#datePick").val());
 		});
 		
 		// 데이트픽커 엔터시 이벤트 발생
 		$("#datePick").on("keyup", function(key) {
 			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
-				chattingStatistics();
-				chattingCountPerDay();
-				directionCountPerDay();
+				datePickTrans($(this).val());
 			}
 		});
 		
@@ -61,6 +57,24 @@
 		});						
 	});
 	
+	function datePickTrans(val) {
+	
+		if(!gfn_IsDate(val)) {
+			alert("정확한 날짜를 입력해주세요!");
+			return;
+		}
+				
+		if(!gfn_NotAfterToday(val)) {
+			alert("미래의 날짜는 안됩니다!");
+			return;
+		}
+				
+		chattingStatistics();
+		chattingCountPerDay();
+		directionCountPerDay();
+		chattingRanking();
+	};
+	
 	function initDay() {
 		var d = new Date();
 		var year = d.getFullYear();
@@ -77,6 +91,7 @@
 		$('#datePick').val(year + "" + month + "" + day);
 		
 		chattingStatistics();
+		chattingRanking();
 	};
 	
 	function initButton() {
@@ -92,6 +107,11 @@
 		    	if(data.status === 'online') {
 		    		$("#serverSwitch").text("서버끄기");
 					$("#switchNumber").val("0");
+					$("#banName").prop("disabled", false);
+					$("#banButton").prop("disabled", false);
+		    	} else {
+		    		$("#banName").prop("disabled", true);
+					$("#banButton").prop("disabled", true);
 		    	}
 			},
 		    error : function(data, status, error) {
@@ -99,7 +119,7 @@
 		    	alert(errorData.errorCode + " " + errorData.errorMsg);
 		    }
 		});
-	}
+	};
 	
 	// ajax 반복호출
 	function callInfo() {
@@ -183,7 +203,7 @@
 		    contentType:"application/json",
 		    success : function(data) {
 			    $("#memory").text((data[0].monit.memory / 1024) + " K");
-				$("#cpu").text(Math.round(data[0].monit.cpu / 10) + " %");	
+				$("#cpu").text(Math.floor(data[0].monit.cpu / 10) + " %");	
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -239,7 +259,7 @@
 	            	html += '<td scope="col" width="200">' + item.cnt + '</a></td>';
 	           		html += '</tr>';
 				});
-				
+				$("#statisticsBody").empty();
 		        $("#statisticsBody").html(html);
 			},
 		    error : function(data, status, error) {
@@ -247,7 +267,35 @@
 		    	alert(errorData.errorCode + " " + errorData.errorMsg);
 		    }
 		});
-	}
+	};
+	
+	function chattingRanking() {
+		$.ajax({
+		    url : "/chattingRanking",
+		    type : "POST",
+		    dataType : "json",
+		    cache : false,
+		    data : JSON.stringify({date : $("#datePick").val()}),
+		    contentType:"application/json",
+		    success : function(data) {
+				
+				var html = "";
+				$.each(data, function(index, item) {
+					html += '<tr>';
+	            	html += '<td scope="col" width="100">' + (index + 1) + "등" + '</td>';
+	            	html += '<td scope="col" width="200">' + item.nickname + '</td>';
+	            	html += '<td scope="col" width="200">' + item.chatnum + '</a></td>';
+	           		html += '</tr>';
+				});
+				$("#rankingsBody").empty();
+		        $("#rankingsBody").html(html);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
 	
 	function serverSwitch(switchNumber) {
 		
@@ -262,6 +310,9 @@
 				if(data.flag === 0) {
 					$("#serverSwitch").text("서버끄기");
 					$("#switchNumber").val("0");
+					
+					$("#banName").prop("disabled", false);
+					$("#banButton").prop("disabled", false);
 				} else {
 					$("#serverSwitch").text("서버켜기");
 					$("#switchNumber").val("1");
@@ -271,6 +322,9 @@
 					$("#members").text("0");
 					$("#memory").text("0 K");
 					$("#cpu").text("0 %");	
+					
+					$("#banName").prop("disabled", true);
+					$("#banButton").prop("disabled", true);
 				}
 			},
 		    error : function(data, status, error) {
@@ -299,6 +353,51 @@
 		    }
 		});
 	};
+	
+	/** 날짜 유효성 체크*/
+	function gfn_IsDate(date) {
+		var nYear = Number(date.substr(0,4));
+	    var nMonth = Number(date.substr(4,2));
+	    var nDay = Number(date.substr(6,2));
+
+	    if (nYear < 1900 || nYear > 3000) { // 사용가능 하지 않은 년도 체크
+	    	return false;
+	    }
+
+	    if (nMonth < 1 || nMonth > 12) { // 사용가능 하지 않은 달 체크
+	    	return false;
+	    }
+
+	    // 해당달의 마지막 일자 구하기
+	    var nMaxDay = new Date(new Date(nYear, nMonth, 1) - 86400000).getDate();
+	    if (nDay < 1 || nDay > nMaxDay) { // 사용가능 하지 않은 날자 체크
+	    	return false;
+	    }
+	    
+	    return true;
+	};
+	
+	/** Date 차이*/
+	function gfn_NotAfterToday(date){
+		if(date.length == 10) {
+			date = date.replace(/[\-./]/gi , "");
+		}
+		
+		var compYear = date.substring(0, 4);
+		var compMonth = date.substring(4, 6) - 1;
+		var compDate = date.substring(6, 8);
+		
+		var toDay = new Date();
+		var compDay = new Date(compYear , compMonth , compDate);
+		
+		var diff = toDay - compDay;
+		
+		if(diff < 0) {
+			return false;
+		} else {
+			return true;
+		}
+	};
 </script>
 	<div class="container">
 		<header>
@@ -309,9 +408,9 @@
 				<div id="wrapper">
 				<div class="animate form">
 					<a href='/logout'>로그아웃</a>
-					<h3>접속자 닉네임 : <%- nickname %></h3>
-					<h3>최근 로그인 날짜 : <%- lastlogdate %></h3>
-					<h3>최근 로그인 시간 : <%- lastlogtime %></h3>
+					<h5>접속자 닉네임 : <%- nickname %></h5>
+					<h5>최근 로그인 날짜 : <%- lastlogdate %></h5>
+					<h5>최근 로그인 시간 : <%- lastlogtime %></h5>
 					
 					<p class="login button">
 						<button id="serverSwitch" type="button">서버켜기</button>
@@ -319,36 +418,34 @@
 							type="text" value="1" style="display:none;/>
 					</p>
 					<form id="chatting_data" class="animate form">
-						<h4>접속자 수</h4>
-						<h4 id="members">명</h4>
+						<h5>접속자 수</h5>
+						<h5 id="members">명</h5>
 						<!--
 							<label for="members" class="members" data-icon="u"> 
 							</label> <input id="members" name="members"
 								type="text"/>
 						-->	
-						<br>	
-						<h4>1초당 패킷 수</h4>
-						<h4 id="chattings"></h4>	
+						<h5>1초당 패킷 수</h5>
+						<h5 id="chattings"></h5>	
 						
-						<h4>메모리</h4>
-						<h4 id="memory"></h4>
-						<br>	
-						<h4>CPU</h4>
-						<h4 id="cpu"></h4>	
-						<br>
-						<h4>강퇴시킬 닉네임</h4>
+						<h5>메모리</h5>
+						<h5 id="memory"></h5>
+						<h5>CPU</h5>
+						<h5 id="cpu"></h5>	
+						<h5>강퇴시킬 닉네임</h5>
 						<input id="banName" name="banName"
 								type="text"/>
 						<button id="banButton" type="button">강퇴</button>
 						
-						<br>날짜별 조회<input type="text" id="datePick" name="datePick" maxlength="8">
-						<h4>날짜별 지시패킷</h4>
-						<h4 id="directionsPerDay"></h4>
-						<br>	
-						<h4>날짜별  채팅패킷</h4>
-						<h4 id="chattingsPerDay"></h4>	
+						날짜 선택<input type="text" id="datePick" name="datePick" maxlength="8">
+						<button id="datePickButton" type="button">날짜별 조회</button>
+						
+						<h5>날짜별 지시패킷</h5>
+						<h5 id="directionsPerDay"></h5>
+						<h5>날짜별  채팅패킷</h5>
+						<h5 id="chattingsPerDay"></h5>	
 					</form>
-						<h4>패킷량 통계</h4>
+						<h5>패킷량 통계</h5>
 						<table border = "1">
 							<colgroup>
 							<col width="100">
@@ -357,12 +454,30 @@
 						<thead>
 						<tr>
 							<th scope="col">시간대</th>
-							<th scope="col">패킷량</th>
+							<th scope="col">채팅량</th>
 						</tr>
 						</thead>
 						<tbody id="statisticsBody">
 						</tbody>
-					</table>
+						</table>
+
+						<h5>닉네임별 채팅 량 통계</h5>
+						<table border = "1">
+							<colgroup>
+							<col width="100">
+							<col width="200">
+							<col width="200">		
+							</colgroup>
+						<thead>
+						<tr>
+							<th scope="col">랭킹</th>
+							<th scope="col">닉네임</th>
+							<th scope="col">채팅수</th>
+						</tr>
+						</thead>
+						<tbody id="rankingsBody">
+						</tbody>
+						</table>
 				</div>
 				<div id="wrapper">
 				<h4>서버 파일 목록</h4>
