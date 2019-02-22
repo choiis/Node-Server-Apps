@@ -68,9 +68,9 @@ var chattingStatistics = function(requestBody, callback) {
 	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
 	var querystring = "select count(*) as cnt, cnt_hour from " +
-	"(select DATEPART(hour,logdate) as cnt_hour " +
-	"from cso_chatting where " +
-	"logdate between @fromTime and @toTime) G group by G.cnt_hour";
+			"(select DATEPART(hour,logdate) as cnt_hour " +
+			"from cso_chatting where " +
+			"logdate between @fromTime and @toTime) G group by G.cnt_hour";
 	
 	request.query(querystring, function (err, result) {
 		// ... error checks 
