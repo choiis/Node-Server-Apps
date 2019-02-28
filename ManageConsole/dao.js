@@ -31,7 +31,7 @@ var directionCountPerDay = function(requestBody, callback) {
 
 	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
-	request.query('select count(*) as cnt from cso_direction where logdate between @fromTime and @toTime', function (err, result) {
+	request.query('select count(*) as cnt from cso_direction with (nolock) where logdate between @fromTime and @toTime', function (err, result) {
 	
 		// ... error checks 
 		if(!err) {
@@ -49,7 +49,7 @@ var chattingCountPerDay = function(requestBody, callback) {
 
 	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
-	request.query('select count(*) as cnt from cso_chatting where logdate between @fromTime and @toTime', function (err, result) {
+	request.query('select count(*) as cnt from cso_chatting with (nolock) where logdate between @fromTime and @toTime', function (err, result) {
 	
 		// ... error checks 
 		if(!err) {
@@ -69,7 +69,7 @@ var chattingStatistics = function(requestBody, callback) {
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
 	var querystring = "select count(*) as cnt, cnt_hour from " +
 			"(select DATEPART(hour,logdate) as cnt_hour " +
-			"from cso_chatting where " +
+			"from cso_chatting with (nolock) where " +
 			"logdate between @fromTime and @toTime) G group by G.cnt_hour";
 	
 	request.query(querystring, function (err, result) {
@@ -92,7 +92,7 @@ var chattingRanking = function(requestBody, callback) {
 	
 	var querystring = "select S.* from " +
 			"(select T.*, ROW_NUMBER() OVER(order by T.chatnum desc) rownum from " +
-			"(select nickname ,count(*) as chatnum from cso_chatting" +
+			"(select nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
 			" where logdate  between @fromTime and @toTime group by nickname) T" +
 			" ) S where S.rownum <= 10";
 	
