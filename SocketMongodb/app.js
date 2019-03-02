@@ -29,6 +29,7 @@ var cors = require('cors');
 var expressSession = require('express-session');
 
 var dbio = require('./dbio');
+var common = require('./common');
 
 // 익스프레스 객체 생성
 var app = express();
@@ -62,7 +63,6 @@ app.use(expressSession({
 // 라우터 객체 참조
 var router = express.Router();
 
-
 //기본 Path
 app.get('/', function(req, res) {
 	res.render('index');
@@ -76,7 +76,7 @@ router.route('/login').post(function(req, res) {
 		if (err) {throw err;}
 			
         // 조회된 레코드가 있으면 성공 응답 전송
-		if (data.length > 0) {
+		if (!common.gfn_isNull(data)) {
 				
 			// 세션저장
 			req.session.user = {
@@ -195,14 +195,94 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 var io = socketio.listen(server);
 console.log('서버 소켓 listen');
 
+var roomMap = {};
+
+var getRoomList = function() {
+	
+	var roomList = [];
+	
+	Object.keys(roomMap).forEach(function(key) {
+		var str = "";
+		str += key;
+		str += " : ";
+		str += roomMap[key].length;
+		str += "명";
+		roomList.push(str);
+	});
+	
+	return roomList;
+};
+
 io.sockets.on('connection', function(socket) {
 	console.log('connection info ' , socket.request.connection._peername);
 	// socket.remoteAddress = socket.request.connection._peername.address;
 	// socket.remotePort = socket.request.connection._peername.port;
 	
-	socket.on('message', function(message) {
-		var msg = message.nickname + ":" + message.message;
-		io.sockets.emit('message', msg);
+	// 방 제어
+	socket.on('room', function(packet) {
+		var direction = packet.direction;
+		
+		var packetToClient = {};
+		
+		if(direction === "makeRoom") {
+			if(io.sockets.adapter.rooms[packet.roomname]) {
+				packetToClient.direction = "roomStatus";
+				packetToClient.msg = "roomExist";
+				
+				socket.emit('room' , packetToClient);
+			} else {
+				socket.join(packet.roomname);
+				var nowRoom = io.sockets.adapter.rooms[packet.roomname];
+				packetToClient.direction = "roomEnter";
+				packetToClient.roomname = packet.roomname;
+
+				socket.emit('room' , packetToClient);
+				
+				roomMap[packet.roomname] = [];
+				roomMap[packet.roomname].push(packet.roomMember);
+				
+				var packetToClient2 = {
+					direction : "roomList",
+					list : getRoomList()
+				};
+				io.sockets.in(packet.roomname).emit('room', packetToClient2);
+			}
+		} else if (direction === "enterRoom") {
+			if(io.sockets.adapter.rooms[packet.roomname]) {
+				socket.join(packet.roomname);
+				packetToClient.direction = "roomEnter";
+				packetToClient.roomname = packet.roomname;
+				console.log('enterRoom');
+				console.dir(packetToClient);
+				socket.emit('room' , packetToClient);
+				
+				roomMap[packet.roomname].push(packet.roomMember);
+				
+				var packetToClient3 = {
+					direction : "roomList",
+					list : getRoomList()
+				};
+				io.sockets.emit('room', packetToClient3);
+			} else {
+				packetToClient.direction = "roomStatus";
+				packetToClient.msg = "roomNotExist";
+				
+				socket.emit('room' , packetToClient);
+			}
+		} else if (direction === "leaveRoom") {
+			socket.leave(packet.roomname);
+			
+			for(var i = roomMap[packet.roomname].length - 1; i >= 0; i--) {
+			    if(roomMap[packet.roomname][i] === packet.roomMember) {
+			    	roomMap[packet.roomname].splice(i, 1);
+			    }
+			}
+		}
+	});
+	
+	socket.on('chat', function(packet) {
+		var msg = packet.nickname + ":" + packet.message;
+		io.sockets.in(packet.roomname).emit('message', msg);
 	});
 });
 

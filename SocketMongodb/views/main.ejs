@@ -9,6 +9,7 @@
 <script>
 
 var socket;
+var myRoom;
 $(document).ready(function() {
 
     connectToServer();
@@ -25,20 +26,43 @@ $(document).ready(function() {
 	$("#send_button").on("click", function(e) {
 		sendMessage();
 	});
+	
+	$("#roomname").on("keyup", function(key) {
+		if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
+			// 전송 함수
+			makeRoom();
+		}
+	});
 		
+	$("#makeRoomButton").on("click", function(e) {
+		makeRoom();
+	});
+
+	$("#entername").on("keyup", function(key) {
+		if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
+			// 전송 함수
+			enterRoom();
+		}
+	});
+		
+	$("#enterRoomButton").on("click", function(e) {
+		enterRoom();
+	});
+	
 });	
 
 function sendMessage() {
 
-	var output = {
+	var packet = {
 		nickname : $("#nickname").text(),
+		roomname : myRoom,
 		message : $("#message").val()
 	};
 		
 	if(socket === undefined) {
 		alert("서버 연결 끊김");
 	}
-	socket.emit("message" , output);
+	socket.emit("chat" , packet);
 };
 
 // 서버에 연결하는 함수 정의
@@ -61,12 +85,77 @@ function connectToServer() {
     	println('웹소켓 연결이 종료되었습니다.');
     
     });
+    
+    socket.on('room', function(packet){
+    	var direction = packet.direction;
+    	
+    	if(direction === "roomEnter") {
+    		myRoom = packet.roomname;
+    	} else if(direction === "roomList") {
+    		
+    		var html = "";
+			$.each(packet.list, function(index, item) {
+				html += '<p>' + item + '</p>';;
+			});
+			$("#roomList").empty();
+			$("#roomList").html(html);
+    	}
+    });
 }
-            
+ 
+function makeRoom() {
+
+	var packet = {
+		direction : "makeRoom",
+		roomname : $("#roomname").val(),
+		roomMember : $("#nickname").text()
+	};
+		
+	if(socket === undefined) {
+		alert("서버 연결 끊김");
+	}
+	socket.emit("room" , packet);
+};
+
+function enterRoom() {
+
+	var packet = {
+		direction : "enterRoom",
+		roomname : $("#entername").val(),
+		roomMember : $("#nickname").text()
+	};
+		
+	if(socket === undefined) {
+		alert("서버 연결 끊김");
+	}
+	socket.emit("room" , packet);
+};
+
+
 function println(data) {
 	console.log(data);
 	$('#result').append('<p>' + data + '</p>');
 }
+
+/** null 체크*/
+function gfn_isNull(obj) {
+	if(obj == undefined) {
+		return true;
+	} else if(obj == null) {
+		return true;
+	} else if(obj === null) {
+		return true;
+	} else if(typeof obj == "string") {
+		if(obj === "") {
+			return true;
+		}
+	} else if(typeof obj == "object") {
+		if(obj.length == 0) {
+			return true;
+		}
+	}
+	return false;
+};
 </script>
 	</head>
 <body>
@@ -77,6 +166,14 @@ function println(data) {
     	<h5 id="nickname"> <%- nickname %></h5>
     	<input type="text" id="message" name="message" />
     	<button id="send_button" type="button">전송</button>
+    	<br>
+    	<input type="text" id="roomname" name="roomname" />
+    	<button id="makeRoomButton" type="button">방 만들기</button>
+    	<br>
+    	<input type="text" id="entername" name="entername" />
+    	<button id="enterRoomButton" type="button">방 입장하기</button>
+    	<div id="roomList">
+    	</div>
     </div>
         
     <hr/>
