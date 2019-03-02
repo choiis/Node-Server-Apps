@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>채팅 클라이언트 </title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>    
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+var socket;
+$(document).ready(function() {
+
+    connectToServer();
+    
+    // 엔터키 입력시 이벤트
+	$("#message").on("keyup", function(key) {
+		if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
+			// 전송 함수
+			sendMessage();
+		}
+	});
+		
+	
+	$("#send_button").on("click", function(e) {
+		sendMessage();
+	});
+		
+});	
+
+function sendMessage() {
+
+	var output = {
+		nickname : $("#nickname").text(),
+		message : $("#message").val()
+	};
+		
+	if(socket === undefined) {
+		alert("서버 연결 끊김");
+	}
+	socket.emit("message" , output);
+};
+
+// 서버에 연결하는 함수 정의
+function connectToServer() {
+        
+	var options = {'forceNew':true};
+    var url = 'http://localhost:3000';
+    console.log('연결시도');
+    socket = io.connect(url, options);
+
+    socket.on('connect', function() {
+    	println('웹소켓 서버에 연결되었습니다. : ' + url);
+    	
+    	socket.on('message',function(message) {
+    		println(message);
+    	});
+    });
+
+    socket.on('disconnect', function() {
+    	println('웹소켓 연결이 종료되었습니다.');
+    
+    });
+}
+            
+function println(data) {
+	console.log(data);
+	$('#result').append('<p>' + data + '</p>');
+}
+</script>
+	</head>
+<body>
+	<h3>채팅 클라이언트 01</h3>
+	<br>
+    <div>
+	<h5>접속자 닉네임 :</h5>
+    	<h5 id="nickname"> <%- nickname %></h5>
+    	<input type="text" id="message" name="message" />
+    	<button id="send_button" type="button">전송</button>
+    </div>
+        
+    <hr/>
+    <p>결과 : </p>
+    <div id="result"></div>
+        
+</body>
+</html>
