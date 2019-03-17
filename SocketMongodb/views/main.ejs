@@ -49,6 +49,10 @@ $(document).ready(function() {
 		enterRoom();
 	});
 	
+	
+	$("#leaveRoomButton").on("click", function(e) {
+		leaveRoom();
+	});
 });	
 
 function sendMessage() {
@@ -74,7 +78,15 @@ function connectToServer() {
     socket = io.connect(url, options);
 
     socket.on('connect', function() {
-    	println('웹소켓 서버에 연결되었습니다. : ' + url);
+    
+	    var packet = {
+			direction : "roomInfo"
+		};
+		
+		if(socket === undefined) {
+			alert("서버 연결 끊김");
+		}
+		socket.emit("room" , packet);
     	
     	socket.on('message',function(message) {
     		println(message);
@@ -132,6 +144,20 @@ function enterRoom() {
 };
 
 
+function leaveRoom() {
+	var packet = {
+		direction : "leaveRoom",
+		roomname : myRoom,
+		roomMember : $("#nickname").text()
+	};
+		
+	if(socket === undefined) {
+		alert("서버 연결 끊김");
+	}
+	socket.emit("room" , packet);
+	myRoom = null;
+};
+
 function println(data) {
 	console.log(data);
 	$('#result').append('<p>' + data + '</p>');
@@ -172,6 +198,7 @@ function gfn_isNull(obj) {
     	<br>
     	<input type="text" id="entername" name="entername" />
     	<button id="enterRoomButton" type="button">방 입장하기</button>
+    	<button id="leaveRoomButton" type="button">방 나가기</button>
     	<div id="roomList">
     	</div>
     </div>
