@@ -5,6 +5,7 @@
   "main": "app.js",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "connect-redis": "^3.4.0",
     "cookie-parser": "^1.4.4",
     "ejs": "^2.6.1",
     "errorhandler": "^1.5.0",
@@ -13,6 +14,7 @@
     "express-session": "^1.15.6",
     "mssql": "^4.3.2",
     "pm2": "^3.2.9",
+    "redis": "^2.8.0",
     "server-static": "^2.0.5",
     "socket.io": "^2.2.0",
     "task-manager": "^1.7.0"
