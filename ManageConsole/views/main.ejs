@@ -98,11 +98,9 @@
 	
 		$.ajax({
 		    url : "/initButton",
-		    type : "POST",
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({}),
-		    contentType:"application/json",
 		    success : function(data) {
 		    	if(data.status === 'online') {
 		    		$("#serverSwitch").text("서버끄기");
@@ -136,11 +134,9 @@
 	function callCount() {
 		$.ajax({
 		    url : "/callCount",
-		    type : "POST",
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({}),
-		    contentType:"application/json",
 		    success : function(data) {
 				$("#members").text(data.cnt);
 				var packetCnt = parseInt(data.packet);
@@ -159,12 +155,10 @@
 	
 	function chattingCountPerDay() {
 		$.ajax({
-		    url : "/chattingCountPerDay",
-		    type : "POST",
+		    url : "/chattingCountPerDay/" + $("#datePick").val(),
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({date : $("#datePick").val()}),
-		    contentType:"application/json",
 		    success : function(data) {
 				$("#chattingsPerDay").text(data[0].cnt);
 			},
@@ -177,12 +171,10 @@
 	
 	function directionCountPerDay() {
 		$.ajax({
-		    url : "/directionCountPerDay",
-		    type : "POST",
+		    url : "/directionCountPerDay/" + $("#datePick").val(),
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({date : $("#datePick").val()}),
-		    contentType:"application/json",
 		    success : function(data) {
 				$("#directionsPerDay").text(data[0].cnt);
 			},
@@ -196,11 +188,9 @@
 	function monitor() {
 		$.ajax({
 		    url : "/monitor",
-		    type : "POST",
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({}),
-		    contentType:"application/json",
 		    success : function(data) {
 			    $("#memory").text((data[0].monit.memory / 1024) + " K");
 				$("#cpu").text(Math.floor(data[0].monit.cpu / 10) + " %");	
@@ -217,11 +207,9 @@
 	function fileList() {
 		$.ajax({
 		    url : "/file",
-		    type : "POST",
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({}),
-		    contentType:"application/json",
 		    success : function(data) {
 				var html = "";
 			
@@ -243,12 +231,10 @@
 	
 	function chattingStatistics() {
 		$.ajax({
-		    url : "/chattingStatistics",
-		    type : "POST",
+		    url : "/chattingStatistics/" + $("#datePick").val(),
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({date : $("#datePick").val()}),
-		    contentType:"application/json",
 		    success : function(data) {
 				
 				var html = "";
@@ -271,14 +257,12 @@
 	
 	function chattingRanking() {
 		$.ajax({
-		    url : "/chattingRanking",
-		    type : "POST",
+		    url : "/chattingRanking/"+ $("#datePick").val(),
+		    type : "GET",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({date : $("#datePick").val()}),
-		    contentType:"application/json",
 		    success : function(data) {
-				
+
 				var html = "";
 				$.each(data, function(index, item) {
 					html += '<tr>';
@@ -301,7 +285,7 @@
 		
 		$.ajax({
 		    url : "/serverSwitch",
-		    type : "POST",
+		    type : "PUT",
 		    dataType : "json",
 		    cache : false,
 		    data : JSON.stringify({off : switchNumber}),
@@ -336,14 +320,11 @@
 	
 	function banUser() {
 		$.ajax({
-		    url : "/ban",
-		    type : "POST",
+		    url : "/ban/"+ $("#banName").val(),
+		    type : "DELETE",
 		    dataType : "json",
 		    cache : false,
-		    data : JSON.stringify({banName : $("#banName").val()}),
-		    contentType:"application/json",
 		    success : function(data) {
-				
 				$("#banName").val("");
 				alert("강퇴!");
 			},

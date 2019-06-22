@@ -76,7 +76,7 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 });
 
 // 메모리 CPU 모니터
-router.route('/monitor').post( (req, res) => {
+router.route('/monitor').get( (req, res) => {
 
 	pm2.describe("Server.exe", function(err, des) {
 
@@ -85,7 +85,7 @@ router.route('/monitor').post( (req, res) => {
 });
 
 // 서버 on/off기능 라우터
-router.route('/serverSwitch').post( (req, res) => {
+router.route('/serverSwitch').put( (req, res) => {
 	if (req.body.off === "1") { // 서버켜기
 
 		pm2.start(exelocation, {
@@ -201,7 +201,7 @@ router.route('/main').get( (req, res) => {
 });
 
 // 관리자화면 로딩시 서버 on off 상태 확인
-router.route('/initButton').post( (req, res) => {
+router.route('/initButton').get( (req, res) => {
 	pm2.describe("Server.exe", function(err, des) {
 		if (!common.gfn_isNull(des[0])) {
 			var json = {
@@ -219,9 +219,9 @@ router.route('/initButton').post( (req, res) => {
 });
 
 // 멤버 강퇴
-router.route('/ban').post( (req, res) => {
+router.route('/ban/:banName').delete( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		var banName = Buffer.from(req.body.banName);
+		var banName = Buffer.from(req.params.banName);
 		// Chatting Server의 Packet유형으로 전달한다
 		var packet = Buffer.alloc(banName.length + 10);
 		// 0 2번째 short 바디사이즈
@@ -241,27 +241,27 @@ router.route('/ban').post( (req, res) => {
 });
 
 // 1초당 지시패킷
-router.route('/directionCountPerDay').post( (req, res) => {
+router.route('/directionCountPerDay/:date').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		dao.directionCountPerDay(req.body, function(data) {
+		dao.directionCountPerDay(req.params, function(data) {
 			res.status(200).send(data);
 		});
 	}
 });
 
 // 1초당 채팅패킷
-router.route('/chattingCountPerDay').post( (req, res) => {
+router.route('/chattingCountPerDay/:date').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		dao.chattingCountPerDay(req.body, function(data) {
+		dao.chattingCountPerDay(req.params, function(data) {
 			res.status(200).send(data);
 		});
 	}
 });
 
 // 시간별 통계
-router.route('/chattingStatistics').post( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.chattingStatistics(req.body, function(data) {
+router.route('/chattingStatistics/:date').get( (req, res) => {
+	if (req.session.user) { // 세선정보 있음	
+		dao.chattingStatistics(req.params, function(data) {
 			res.status(200).send(data);
 		});
 
@@ -269,16 +269,16 @@ router.route('/chattingStatistics').post( (req, res) => {
 });
 
 // 채팅수 통계
-router.route('/chattingRanking').post( (req, res) => {
+router.route('/chattingRanking/:date').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		dao.chattingRanking(req.body, function(data) {
+		dao.chattingRanking(req.params, function(data) {
 			res.status(200).send(data);
 		});
 	}
 });
 
 // 로그인 유저수
-router.route('/callCount').post( (req, res) => {
+router.route('/callCount').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
 		if (serverSwitch) { // 서버 켜진 상태
 
@@ -320,7 +320,7 @@ router.route('/callCount').post( (req, res) => {
 });
 
 // 서버의 파일 확인
-router.route('/file').post( (req, res) => {
+router.route('/file').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
 		var fs = require('fs');
 

@@ -64,7 +64,7 @@ var chattingStatistics = function(requestBody, callback) {
 	
 	// Query 
 	var request = new mssql.Request();
-
+	
 	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
 	var querystring = "select count(*) as cnt, cnt_hour from " +
