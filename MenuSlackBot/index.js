@@ -11,16 +11,6 @@ var controller = botkit.slackbot();
 
 var menuList = [];
 
-var bot = controller.spawn({
-	token : "xoxb-614704772881-676754588112-c9mOrRM0Eyx7lzdyFgzezjWw"
-});
-
-bot.startRTM(function(err, bot, payload) {
-	if(err) {
-		throw new Error('could not connect to slack');
-	}
-});
-
 controller.hears(["오늘의메뉴"],["direct_message","direct_mention","mention","ambient"],function(bot,message) {
 	
 	console.log(menuList);
@@ -39,6 +29,18 @@ fs.readFile('conf.properties', 'utf8', (err, data) => {
 	
 	var json = JSON.parse(data);
 	var menuUrl = json.menuUrl;
+	var key = json.token;
+	
+	var bot = controller.spawn({
+		token : key
+	});
+
+	bot.startRTM(function(err, bot, payload) {
+		if(err) {
+			throw new Error('could not connect to slack');
+		}
+	});
+
 	
 	axios.get(menuUrl).then(html => {
 		var $ = cheerio.load(html.data);
