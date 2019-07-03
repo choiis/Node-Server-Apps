@@ -13,7 +13,7 @@ var selectId = function(requestBody, callback) {
 	
 	request.input('userid', requestBody.userid);
 	request.input('password', requestBody.password);
-	request.query('select * from cso_id where userid = @userid and password = @password', function (err, result) {
+	request.query('select * from cso_id with (nolock) where userid = @userid and password = @password', function (err, result) {
 	
 		// ... error checks 
 		if(!err) {
@@ -64,7 +64,6 @@ var chattingStatistics = function(requestBody, callback) {
 	
 	// Query 
 	var request = new mssql.Request();
-	
 	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
 	var querystring = "select count(*) as cnt, cnt_hour from " +
@@ -90,11 +89,8 @@ var chattingRanking = function(requestBody, callback) {
 	request.input('fromTime', common.gfn_stringToDate(requestBody.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(requestBody.date) + " 23:59:59");
 	
-	var querystring = "select S.* from " +
-			"(select T.*, ROW_NUMBER() OVER(order by T.chatnum desc) rownum from " +
-			"(select nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
-			" where logdate  between @fromTime and @toTime group by nickname) T" +
-			" ) S where S.rownum <= 10";
+	var querystring = "select top 10 nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
+			"where logdate  between @fromTime and @toTime group by nickname order by chatnum desc";
 	
 	request.query(querystring, function (err, result) {
 		// ... error checks 
