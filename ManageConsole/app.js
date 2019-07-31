@@ -11,6 +11,7 @@ var pm2 = require('pm2');
 var dao = require('./dao');
 
 var common = require('./common');
+var smtp = require('./smtp');
 // 익스프레스 객체 생성
 var app = express();
 
@@ -53,16 +54,10 @@ var cssSheet = {
 
 // pm2 연결
 pm2.connect(function(err) {
-
 });
 
 var exelocation;
 
-// post 공통로직
-router.route('/').post( (req, res, next) => {
-	console.log("post call");
-	next();
-});
 
 // 설정파일 읽어들이기
 fs.readFile('conf.properties', 'utf8', function(err, data) {
@@ -70,7 +65,7 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 	exelocation = json.exelocation;
 	// node js listen port는 설정파일에 있다
 	app.listen(json.nodeport, function() {
-		console.log('Example app listening on port ' + json.nodeport + '!');
+		console.log('application listening on port ' + json.nodeport + '!');
 	});
 
 });
@@ -103,6 +98,8 @@ router.route('/serverSwitch').put( (req, res) => {
 			res.send({
 				flag : 0
 			});
+
+			smtp.sendMail("서버켜짐!");
 		});
 	} else {
 
@@ -126,6 +123,8 @@ router.route('/serverSwitch').put( (req, res) => {
 		res.send({
 			flag : 1
 		});
+
+		smtp.sendMail("서버꺼짐!");
 	}
 });
 
@@ -350,6 +349,7 @@ app.all('*', (req, res) => {
 var process = require('process');
 process.on('uncaughtException', function(err) {
 	console.error('예기치 못한 에러', err);
+	smtp.sendMail("예기치 못한 에러" + err);
 });
 
 var request = http.request({
