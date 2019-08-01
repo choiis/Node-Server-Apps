@@ -13,6 +13,7 @@
     "express": "^4.16.4",
     "express-error-handler": "^1.1.0",
     "express-session": "^1.15.6",
+    "helmet": "^3.20.0",
     "mssql": "^4.3.2",
     "nodemailer": "^6.3.0",
     "nodemailer-smtp-transport": "^2.7.4",

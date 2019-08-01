@@ -18,6 +18,7 @@ var app = express();
 var router = express.Router();
 
 var net = require('net');
+var helmet = require('helmet');
 var client = new net.Socket();
 
 var serverSwitch = false;
@@ -44,7 +45,8 @@ app.use(expressSession({
 	resave : true,
 	saveUninitialized : true
 }));
-
+app.use(helmet.xssFilter());
+app.disable('x-powered-by');
 // 서버 파일 디렉토리
 var directory = 'Downloads';
 
