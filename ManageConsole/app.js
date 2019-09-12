@@ -278,6 +278,15 @@ router.route('/chattingRanking/:date').get( (req, res) => {
 	}
 });
 
+//채팅수 통계
+router.route('/chattingTotalRanking/:offset').get( (req, res) => {
+	if (req.session.user) { // 세선정보 있음
+		dao.chattingTotalRanking(req.params, function(data) {
+			res.status(200).send(data);
+		});
+	}
+});
+
 // 로그인 유저수
 router.route('/callCount').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음

@@ -45,16 +45,20 @@
 		
 			serverSwitch($("#switchNumber").val());
 		});
-
 		$("#banName").on("keyup", function(key) {
 			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
 				banUser();
 			}
 		});
-
 		$("#banButton").on("click", function(e) {
 			banUser();
-		});						
+		});			
+		
+		$("#offset").on("change", function(e) {
+			if($(this).val() > 0) {
+				chattingTotalRanking($(this).val());
+			}
+		});					
 	});
 	
 	function datePickTrans(val) {
@@ -262,7 +266,6 @@
 		    dataType : "json",
 		    cache : false,
 		    success : function(data) {
-
 				var html = "";
 				$.each(data, function(index, item) {
 					html += '<tr>';
@@ -273,6 +276,32 @@
 				});
 				$("#rankingsBody").empty();
 		        $("#rankingsBody").html(html);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+	
+	function chattingTotalRanking(val) {
+
+		$.ajax({
+		    url : "/chattingTotalRanking/"+ val,
+		    type : "GET",
+		    dataType : "json",
+		    cache : false,
+		    success : function(data) {
+				var html = "";
+				$.each(data, function(index, item) {
+					html += '<tr>';
+	            	html += '<td scope="col" width="100">' + (10 * (val - 1) + (index + 1)) + "등" + '</td>';
+	            	html += '<td scope="col" width="200">' + item.nickname + '</td>';
+	            	html += '<td scope="col" width="200">' + item.chatnum + '</a></td>';
+	           		html += '</tr>';
+				});
+				$("#totalRankingsBody").empty();
+		        $("#totalRankingsBody").html(html);
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -340,15 +369,12 @@
 		var nYear = Number(date.substr(0,4));
 	    var nMonth = Number(date.substr(4,2));
 	    var nDay = Number(date.substr(6,2));
-
 	    if (nYear < 1900 || nYear > 3000) { // 사용가능 하지 않은 년도 체크
 	    	return false;
 	    }
-
 	    if (nMonth < 1 || nMonth > 12) { // 사용가능 하지 않은 달 체크
 	    	return false;
 	    }
-
 	    // 해당달의 마지막 일자 구하기
 	    var nMaxDay = new Date(new Date(nYear, nMonth, 1) - 86400000).getDate();
 	    if (nDay < 1 || nDay > nMaxDay) { // 사용가능 하지 않은 날자 체크
@@ -441,8 +467,7 @@
 						<tbody id="statisticsBody">
 						</tbody>
 						</table>
-
-						<h5>닉네임별 채팅 량 통계</h5>
+						<h5>닉네임별,날짜별 채팅 량 통계</h5>
 						<table border = "1">
 							<colgroup>
 							<col width="100">
@@ -459,6 +484,26 @@
 						<tbody id="rankingsBody">
 						</tbody>
 						</table>
+				</div>
+				<div id="wrapper">
+				<h5>닉네임별 전체 채팅 량 통계</h5>
+					페이지<input type="number" id="offset" name="offset">
+					<table border = "1">
+						<colgroup>
+						<col width="100">
+						<col width="200">
+						<col width="200">		
+						</colgroup>
+					<thead>
+					<tr>
+						<th scope="col">랭킹</th>
+						<th scope="col">닉네임</th>
+						<th scope="col">채팅수</th>
+					</tr>
+					</thead>
+					<tbody id="totalRankingsBody">
+					</tbody>
+					</table>
 				</div>
 				<div id="wrapper">
 				<h4>서버 파일 목록</h4>
