@@ -19,6 +19,7 @@ var router = express.Router();
 
 var net = require('net');
 var helmet = require('helmet');
+var cron = require('node-cron');
 var client = new net.Socket();
 
 var serverSwitch = false;
@@ -287,6 +288,15 @@ router.route('/chattingTotalRanking/:offset').get( (req, res) => {
 	}
 });
 
+//접속유저수 통계
+router.route('/uniqueUser/:date').get( (req, res) => {
+	if (req.session.user) { // 세선정보 있음
+		dao.uniqueUser(req.params, function(data) {
+			res.status(200).send(data);
+		});
+	}
+});
+
 // 로그인 유저수
 router.route('/callCount').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
@@ -370,3 +380,8 @@ var request = http.request({
 		console.log("error");
 	});
 });
+
+// 매일 00시 20분 배치프로그램 실행 => daily Statistics
+cron.schedule('20 00 * * *', () => {
+	dao.calcDaily();
+}).start();

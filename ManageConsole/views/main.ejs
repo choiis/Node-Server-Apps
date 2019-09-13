@@ -77,6 +77,7 @@
 		chattingCountPerDay();
 		directionCountPerDay();
 		chattingRanking();
+		uniqueUser();
 	};
 	
 	function initDay() {
@@ -310,6 +311,23 @@
 		});
 	};
 	
+	function uniqueUser() {
+	
+		$.ajax({
+		    url : "/uniqueUser/"+ $("#datePick").val(),
+		    type : "GET",
+		    dataType : "json",
+		    cache : false,
+		    success : function(data) {
+				$("#userCount").text(data[0].uniqueuser);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+	
 	function serverSwitch(switchNumber) {
 		
 		$.ajax({
@@ -447,6 +465,8 @@
 						날짜 선택<input type="text" id="datePick" name="datePick" maxlength="8">
 						<button id="datePickButton" type="button">날짜별 조회</button>
 						
+						<h5>날짜별 사용자수</h5>
+						<h5 id="userCount"></h5>
 						<h5>날짜별 지시패킷</h5>
 						<h5 id="directionsPerDay"></h5>
 						<h5>날짜별  채팅패킷</h5>

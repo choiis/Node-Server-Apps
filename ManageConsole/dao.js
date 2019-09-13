@@ -127,9 +127,46 @@ var chattingTotalRanking = function(params, callback) {
 };
 
 
+var calcDaily = function() {
+	// Query 
+	var request = new mssql.Request();
+	
+	var querystring = "exec calc_daily 1";
+
+	request.query(querystring, function (err, result) {
+		// ... error checks 
+		if(!err) {
+			console.log("calcDaily");	
+		} else { 
+		console.log(err);	
+		} 
+	});
+};
+
+
+var uniqueUser = function(params, callback) {
+	
+	// Query 
+	var request = new mssql.Request();
+
+	request.input('regdate', common.gfn_stringToDate(params.date));
+	
+	request.query('select uniqueuser from daily where regdate = @regdate', function (err, result) {
+	
+		// ... error checks 
+		if(!err) {
+			callback(result.recordset);	    	
+		} else { 
+			console.log(err);	
+		} 
+	});
+};
+
 module.exports.selectId = selectId;
 module.exports.directionCountPerDay = directionCountPerDay;
 module.exports.chattingCountPerDay = chattingCountPerDay;
 module.exports.chattingStatistics = chattingStatistics;
 module.exports.chattingRanking = chattingRanking;
 module.exports.chattingTotalRanking = chattingTotalRanking;
+module.exports.calcDaily = calcDaily;
+module.exports.uniqueUser = uniqueUser;
