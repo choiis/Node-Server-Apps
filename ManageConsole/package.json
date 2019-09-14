@@ -4,6 +4,7 @@
   "description": "Created with [Nodeclipse](https://github.com/Nodeclipse/nodeclipse-1)\r  ([Eclipse Marketplace](http://marketplace.eclipse.org/content/nodeclipse), [site](http://www.nodeclipse.org))",
   "main": "index.js",
   "dependencies": {
+    "async": "^3.1.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "ejs": "^2.7.1",

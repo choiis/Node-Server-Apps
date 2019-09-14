@@ -139,24 +139,24 @@ app.get('/', (req, res) => {
 });
 
 // 로그인 router
-router.route('/login').post( (req, res) => {
+router.route('/login').post( async (req, res) => {
 
-	var rows = dao.selectId(req.body, function(data) {
-		if (data.length > 0) {
-			console.log("login okey");
-			// 세션저장
-			req.session.user = {
-				userid : data[0].userid,
-				nickname : data[0].nickname,
-				lastlogdate : data[0].lastlogdate,
-				adminyn : data[0].adminyn
-			};
-			res.send(data);
-		} else {
-			console.log("login fail");
-			res.send(data);
-		}
-	});
+	let data = await dao.selectId(req.body);
+
+	if (data.length > 0) {
+		console.log("login okey");
+		// 세션저장
+		req.session.user = {
+			userid : data[0].userid,
+			nickname : data[0].nickname,
+			lastlogdate : data[0].lastlogdate,
+			adminyn : data[0].adminyn
+		};
+		res.send(data);
+	} else {
+		console.log("login fail");
+		res.send(data);
+	}
 });
 
 // 로그아웃 router

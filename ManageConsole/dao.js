@@ -6,22 +6,18 @@ var common = require('./common');
 
 var mssql = sqlSession.mssql;
 
-var selectId = ((params, callback) =>{
+var selectId = ( async (params) =>{
 	
 	// Query 
 	var request = new mssql.Request();
 	
 	request.input('userid', params.userid);
 	request.input('password', params.password);
-	request.query('select * from cso_id with (nolock) where userid = @userid and password = @password', function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query('select * from cso_id with (nolock) where userid = @userid and password = @password')
+	.then(function(result) {
+		return result.recordset;
 	});
+	return data;
 });
 
 var directionCountPerDay = ((params, callback) => {
