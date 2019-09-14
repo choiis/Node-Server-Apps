@@ -6,7 +6,7 @@ var common = require('./common');
 
 var mssql = sqlSession.mssql;
 
-var selectId = function(params, callback) {
+var selectId = ((params, callback) =>{
 	
 	// Query 
 	var request = new mssql.Request();
@@ -22,9 +22,9 @@ var selectId = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
-var directionCountPerDay = function(params, callback) {
+var directionCountPerDay = ((params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -40,9 +40,9 @@ var directionCountPerDay = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
-var chattingCountPerDay = function(params, callback) {
+var chattingCountPerDay = ((params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -58,9 +58,9 @@ var chattingCountPerDay = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
-var chattingStatistics = function(params, callback) {
+var chattingStatistics = ((params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -79,9 +79,9 @@ var chattingStatistics = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
-var chattingRanking = function(params, callback) {
+var chattingRanking = ((params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -90,7 +90,7 @@ var chattingRanking = function(params, callback) {
 	request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
 	
 	var querystring = "select top 10 nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
-			"where logdate  between @fromTime and @toTime group by nickname order by chatnum desc";
+			"where logdate between @fromTime and @toTime group by nickname order by chatnum desc";
 	
 	request.query(querystring, function (err, result) {
 		// ... error checks 
@@ -100,9 +100,9 @@ var chattingRanking = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
-var chattingTotalRanking = function(params, callback) {
+var chattingTotalRanking = ((params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -124,10 +124,10 @@ var chattingTotalRanking = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
 
-var calcDaily = function() {
+var calcDaily = (() => {
 	// Query 
 	var request = new mssql.Request();
 	
@@ -141,17 +141,17 @@ var calcDaily = function() {
 		console.log(err);	
 		} 
 	});
-};
+});
 
 
-var uniqueUser = function(params, callback) {
+var uniqueUser = ((params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
 
 	request.input('regdate', common.gfn_stringToDate(params.date));
 	
-	request.query('select uniqueuser from daily where regdate = @regdate', function (err, result) {
+	request.query('select uniqueuser from daily with (nolock) where regdate = @regdate', function (err, result) {
 	
 		// ... error checks 
 		if(!err) {
@@ -160,7 +160,7 @@ var uniqueUser = function(params, callback) {
 			console.log(err);	
 		} 
 	});
-};
+});
 
 module.exports.selectId = selectId;
 module.exports.directionCountPerDay = directionCountPerDay;

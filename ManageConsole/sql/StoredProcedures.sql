@@ -12,9 +12,9 @@ merge into daily as D
     Using (select T.day,T.uniqueuser,S.dailytraffic from
 		(select count(distinct userid) as uniqueuser,
 		@yesterday as day
-		 from cso_login
+		 from cso_login with (nolock)
 		where logindate between @from and @to) T,
-		(select count(*) as dailytraffic from cso_chatting
+		(select count(*) as dailytraffic from cso_chatting with (nolock)
 	where logdate between @from and @to) S) as C
 	ON (D.regdate= C.day)
     WHEN NOT MATCHED THEN
