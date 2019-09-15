@@ -6,16 +6,21 @@ var common = require('./common');
 
 var mssql = sqlSession.mssql;
 
-var selectId = ( async (params) =>{
+var selectId = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
 	
 	request.input('userid', params.userid);
 	request.input('password', params.password);
-	let data = await request.query('select * from cso_id with (nolock) where userid = @userid and password = @password')
-	.then(function(result) {
+	var querystring = "select * from cso_id with (nolock) where userid = @userid and password = @password";
+	
+	let data = await request.query(querystring)
+	.then((result) => {
 		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
 	return data;
 });
@@ -27,7 +32,10 @@ var directionCountPerDay = ((params, callback) => {
 
 	request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-	request.query('select count(*) as cnt from cso_direction with (nolock) where logdate between @fromTime and @toTime', function (err, result) {
+	var querystring = "select count(*) as cnt from cso_direction with (nolock) " +
+			"where logdate between @fromTime and @toTime";
+	
+	request.query(querystring, function (err, result) {
 	
 		// ... error checks 
 		if(!err) {
@@ -45,7 +53,10 @@ var chattingCountPerDay = ((params, callback) => {
 
 	request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-	request.query('select count(*) as cnt from cso_chatting with (nolock) where logdate between @fromTime and @toTime', function (err, result) {
+	var querystring = "select count(*) as cnt from cso_chatting with (nolock)" +
+			" where logdate between @fromTime and @toTime";
+	
+	request.query(querystring, function (err, result) {
 	
 		// ... error checks 
 		if(!err) {
@@ -84,7 +95,6 @@ var chattingRanking = ((params, callback) => {
 
 	request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
 	request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-	
 	var querystring = "select top 10 nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
 			"where logdate between @fromTime and @toTime group by nickname order by chatnum desc";
 	
@@ -123,39 +133,36 @@ var chattingTotalRanking = ((params, callback) => {
 });
 
 
-var calcDaily = (() => {
+var calcDaily = ( async () => {
 	// Query 
 	var request = new mssql.Request();
 	
-	var querystring = "exec calc_daily 1";
-
-	request.query(querystring, function (err, result) {
-		// ... error checks 
-		if(!err) {
-			console.log("calcDaily");	
-		} else { 
-		console.log(err);	
-		} 
+	let data = await request.query("exec calc_daily 1").then(function() {
+		return 1;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
 
-var uniqueUser = ((params, callback) => {
+var uniqueUser = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
 
 	request.input('regdate', common.gfn_stringToDate(params.date));
+	var querystring = "select uniqueuser from daily with (nolock) where regdate = @regdate";
 	
-	request.query('select uniqueuser from daily with (nolock) where regdate = @regdate', function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
 module.exports.selectId = selectId;

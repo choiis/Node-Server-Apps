@@ -140,22 +140,26 @@ app.get('/', (req, res) => {
 
 // 로그인 router
 router.route('/login').post( async (req, res) => {
+	try {
+		let data = await dao.selectId(req.body);
 
-	let data = await dao.selectId(req.body);
-
-	if (data.length > 0) {
-		console.log("login okey");
-		// 세션저장
-		req.session.user = {
-			userid : data[0].userid,
-			nickname : data[0].nickname,
-			lastlogdate : data[0].lastlogdate,
-			adminyn : data[0].adminyn
-		};
-		res.send(data);
-	} else {
-		console.log("login fail");
-		res.send(data);
+		if (data.length > 0) {
+			console.log("login okey");
+			// 세션저장
+			req.session.user = {
+				userid : data[0].userid,
+				nickname : data[0].nickname,
+				lastlogdate : data[0].lastlogdate,
+				adminyn : data[0].adminyn
+			};
+			res.status(200).send(data);
+		} else {
+			console.log("login fail");
+			res.status(200).send(data);
+		}
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
@@ -289,11 +293,15 @@ router.route('/chattingTotalRanking/:offset').get( (req, res) => {
 });
 
 //접속유저수 통계
-router.route('/uniqueUser/:date').get( (req, res) => {
+router.route('/uniqueUser/:date').get( async (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		dao.uniqueUser(req.params, function(data) {
+		try {
+			let data = await dao.uniqueUser(req.params);
 			res.status(200).send(data);
-		});
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}	
 	}
 });
 
@@ -382,6 +390,13 @@ var request = http.request({
 });
 
 // 매일 00시 20분 배치프로그램 실행 => daily Statistics
-cron.schedule('20 00 * * *', () => {
-	dao.calcDaily();
+cron.schedule('20 13 * * *', async () => {
+	try {
+		let data = await dao.calcDaily();
+		if(data == 1) {
+			console.log("calcDaily");
+		}
+	} catch (err) {
+		console.log(err);
+	}
 }).start();
