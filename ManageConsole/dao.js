@@ -165,6 +165,47 @@ var uniqueUser = ( async (params) => {
 	return data;
 });
 
+var fileRecvDataPerDay = ((params, callback) => {
+	
+	// Query 
+	var request = new mssql.Request();
+
+	request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
+	request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
+	var querystring = "select * from cso_filerecv with (nolock, index(idx_filerecv_1))" +
+			" where regdate between @fromTime and @toTime";
+	
+	request.query(querystring, function (err, result) {
+	
+		// ... error checks 
+		if(!err) {
+			callback(result.recordset);	    	
+		} else { 
+			console.log(err);	
+		} 
+	});
+});
+
+var fileRecvDataByNickName = ((params, callback) => {
+	
+	// Query 
+	var request = new mssql.Request();
+
+	request.input('nickname', params.nickname);
+	var querystring = "select * from cso_filerecv with (nolock, index(pk_cso_filerecv))" +
+			" where nickname = @nickname";
+	
+	request.query(querystring, function (err, result) {
+	
+		// ... error checks 
+		if(!err) {
+			callback(result.recordset);	    	
+		} else { 
+			console.log(err);	
+		} 
+	});
+});
+
 module.exports.selectId = selectId;
 module.exports.directionCountPerDay = directionCountPerDay;
 module.exports.chattingCountPerDay = chattingCountPerDay;
@@ -173,3 +214,5 @@ module.exports.chattingRanking = chattingRanking;
 module.exports.chattingTotalRanking = chattingTotalRanking;
 module.exports.calcDaily = calcDaily;
 module.exports.uniqueUser = uniqueUser;
+module.exports.fileRecvDataPerDay = fileRecvDataPerDay;
+module.exports.fileRecvDataByNickName = fileRecvDataByNickName;

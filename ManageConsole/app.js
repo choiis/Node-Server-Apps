@@ -305,6 +305,24 @@ router.route('/uniqueUser/:date').get( async (req, res) => {
 	}
 });
 
+// 파일전송일별통계
+router.route('/fileRecvDataPerDay/:date').get( (req, res) => {
+	if (req.session.user) { // 세선정보 있음
+		dao.fileRecvDataPerDay(req.params, function(data) {
+			res.status(200).send(data);
+		});
+	}
+});
+
+// 파일전송닉네임별통계
+router.route('/fileRecvDataByNickName/:nickname').get( (req, res) => {
+	if (req.session.user) { // 세선정보 있음
+		dao.fileRecvDataByNickName(req.params, function(data) {
+			res.status(200).send(data);
+		});
+	}
+});
+
 // 로그인 유저수
 router.route('/callCount').get( (req, res) => {
 	if (req.session.user) { // 세선정보 있음
