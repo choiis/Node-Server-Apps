@@ -19,6 +19,7 @@
     "nodemailer": "^6.3.0",
     "nodemailer-smtp-transport": "^2.7.4",
     "pm2": "^3.5.1",
+    "redis": "^2.8.0",
     "server-static": "^2.0.5"
   },
   "devDependencies": {},

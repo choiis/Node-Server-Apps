@@ -12,6 +12,7 @@ var dao = require('./dao');
 
 var common = require('./common');
 var smtp = require('./smtp');
+var redis = require('./redis');
 // 익스프레스 객체 생성
 var app = express();
 
