@@ -386,6 +386,30 @@ router.route('/fileDown/:name').get( (req, res) => {
 	}
 });
 
+//zrevrange 
+router.route('/zrevrange/:key').get( async (req, res) => {
+
+	try {
+		let data = await redis.zrevrange(req.params.key);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
+	}
+});
+
+// redis get 
+router.route('/redisGet/:key').get( async (req, res) => {
+
+	try {
+		let data = await redis.get(req.params.key);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
+	}
+});
+
 // 라우터 등록
 app.use('/', router);
 
