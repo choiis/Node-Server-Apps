@@ -29,9 +29,9 @@ var get = ( async (key) => {
 	return data;
 });
 
-var zrevrange = ( async (key) => {
+var zrevrange = ( async (key ,cnt) => {
 	
-	let data = await db.zrevrange(key, 0, -1, 'withscores')
+	let data = await db.zrevrange(key, 0, cnt, 'withscores')
 	.then((array) => {
 		var result = new Array();
 		for (var i = 0; i < array.length; i+=2) {
@@ -47,12 +47,41 @@ var zrevrange = ( async (key) => {
 	return data;
 });
 
-var zadd= ((key , number, value) => {
+var zadd = ((key , number, value) => {
 	
 	db.zadd(key, number, value);
 });
+
+var hmget = ( async (key , field) => {
+	
+	let data = await db.hmget(key, field)
+	.then((result) => {
+		
+		return result;
+	})
+	.catch((err) => {
+		console.log(err);
+	});
+	return data;
+});
+
+var hgetall = ( async (key) => {
+	
+	let data = await db.hgetall(key)
+	.then((result) => {
+		
+		return result;
+	})
+	.catch((err) => {
+		console.log(err);
+	});
+	return data;
+});
+
 
 module.exports.set = set;
 module.exports.get = get;
 module.exports.zrevrange = zrevrange;
 module.exports.zadd = zadd;
+module.exports.hmget = hmget;
+module.exports.hgetall = hgetall;

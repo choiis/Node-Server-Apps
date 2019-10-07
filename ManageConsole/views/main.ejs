@@ -27,7 +27,9 @@
 		
 		callInfo();
 		
-		fileList();
+		//fileList();
+		
+		zrevrange("pl");
 		
 		// 데이트픽커 바뀔시 이벤트 발생
 		$("#datePickButton").on("click", function(e) {
@@ -197,7 +199,7 @@
 		    dataType : "json",
 		    cache : false,
 		    success : function(data) {
-			    $("#memory").text((data[0].monit.memory / 1024) + " K");
+		        $("#memory").text((data[0].monit.memory / 1024) + " K");
 				$("#cpu").text(Math.floor(data[0].monit.cpu / 10) + " %");	
 			},
 		    error : function(data, status, error) {
@@ -320,6 +322,34 @@
 		    cache : false,
 		    success : function(data) {
 				$("#userCount").text(data[0].uniqueuser);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    }
+		});
+	};
+	
+	function zrevrange(key) {
+		
+		$.ajax({
+		    url : "/zrevrange/" + key + "/10",
+		    type : "GET",
+		    dataType : "json",
+		    cache : false,
+		    success : function(data) {
+				var html = "";
+			
+				$.each(data, function(index, item) {
+					var key = Object.keys(item);
+					html += '<tr>';
+	            	html += '<td scope="col" width="50">' + index + '</td>';
+	            	html += '<td scope="col" width="100">' + key + '</td>';
+	            	html += '<td scope="col" width="50">' + item[key]+ '</td>';
+	           		html += '</tr>';
+				});
+				$("#plTbody").empty();
+		        $("#plTbody").html(html);
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -542,6 +572,27 @@
 				</tbody>
 				</table>
 				</div>
+				
+				<div id="wrapper">
+				<h4>인기도 리스트</h4>
+				<table border = "1">
+				<colgroup>
+					<col width="50">
+					<col width="100">	
+					<col width="50">	
+				</colgroup>
+				<thead>
+				<tr>
+					<th scope="col">등수</th>
+					<th scope="col">닉네임</th>
+					<th scope="col">좋아요</th>
+				</tr>
+				</thead>
+				<tbody id="plTbody">
+				</tbody>
+				</table>
+				</div>
+				
 				</div>
 				
 			</div>

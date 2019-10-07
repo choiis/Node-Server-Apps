@@ -49,8 +49,7 @@ app.use(expressSession({
 }));
 app.use(helmet.xssFilter());
 app.disable('x-powered-by');
-// 서버 파일 디렉토리
-var directory = 'Downloads';
+
 
 var cssSheet = {
 	style : fs.readFileSync('views/style.css', 'utf8')
@@ -60,13 +59,17 @@ var cssSheet = {
 pm2.connect(function(err) {
 });
 
+//서버 파일 디렉토리
+var directory;
 var exelocation;
-
 
 // 설정파일 읽어들이기
 fs.readFile('conf.properties', 'utf8', function(err, data) {
 	var json = JSON.parse(data);
 	exelocation = json.exelocation;
+	directory = json.directory;
+	console.log("exelocation : " + exelocation);
+	console.log("directory : " + directory);
 	// node js listen port는 설정파일에 있다
 	app.listen(json.nodeport, function() {
 		console.log('application listening on port ' + json.nodeport + '!');
@@ -387,10 +390,10 @@ router.route('/fileDown/:name').get( (req, res) => {
 });
 
 //zrevrange 
-router.route('/zrevrange/:key').get( async (req, res) => {
+router.route('/zrevrange/:key/:cnt').get( async (req, res) => {
 
 	try {
-		let data = await redis.zrevrange(req.params.key);
+		let data = await redis.zrevrange(req.params.key, req.params.cnt);
 		res.status(200).send(data);
 	} catch (err) {
 		console.log(err);
@@ -403,6 +406,31 @@ router.route('/redisGet/:key').get( async (req, res) => {
 
 	try {
 		let data = await redis.get(req.params.key);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
+	}
+});
+
+
+//redis hmget 
+router.route('/hmget/:key/:field').get( async (req, res) => {
+
+	try {
+		let data = await redis.hmget(req.params.key, req.params.field);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
+	}
+});
+
+//redis hgetall 
+router.route('/hgetall/:key').get( async (req, res) => {
+
+	try {
+		let data = await redis.hgetall(req.params.key);
 		res.status(200).send(data);
 	} catch (err) {
 		console.log(err);
