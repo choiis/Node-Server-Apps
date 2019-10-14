@@ -8,8 +8,9 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 	var json = JSON.parse(data);
 	db = createClient({
 		"host" :json.redisServer,
-		"port" :json.redisPort});
-	
+		"port" :json.redisPort
+	});
+
 });
 
 var set = ((key, value) => {

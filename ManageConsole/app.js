@@ -47,9 +47,18 @@ app.use(expressSession({
 	resave : true,
 	saveUninitialized : true
 }));
+// 시큐어 코딩
+// helmet => http 헤더 9개 설정 조작
+// X-Frame-Options헤더 설정
+app.use(helmet.frameguard());
+// 웹 브라우저에서 xss필터 사용
 app.use(helmet.xssFilter());
-app.disable('x-powered-by');
+// 선언 콘텐츠 이외의 응답에대한 MIME가로채기 방지
+app.use(helmet.noSniff());
+// 클라이언트 캐싱 방지
+app.use(helmet.noCache());
 
+app.disable('x-powered-by'); // => app.use(helmet.hidePoweredBy());
 
 var cssSheet = {
 	style : fs.readFileSync('views/style.css', 'utf8')
@@ -80,8 +89,7 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 // 메모리 CPU 모니터
 router.route('/monitor').get( (req, res) => {
 
-	pm2.describe("Server.exe", function(err, des) {
-
+	pm2.describe("Server.exe", (err, des) => {
 		res.send(des);
 	});
 });
@@ -251,79 +259,93 @@ router.route('/ban/:banName').delete( (req, res) => {
 });
 
 // 1초당 지시패킷
-router.route('/directionCountPerDay/:date').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.directionCountPerDay(req.params, function(data) {
-			res.status(200).send(data);
-		});
+router.route('/directionCountPerDay/:date').get( async (req, res) => {
+	try {
+		let data = await dao.directionCountPerDay(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
 // 1초당 채팅패킷
-router.route('/chattingCountPerDay/:date').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.chattingCountPerDay(req.params, function(data) {
-			res.status(200).send(data);
-		});
+router.route('/chattingCountPerDay/:date').get( async (req, res) => {
+	try {
+		let data = await dao.chattingCountPerDay(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
 // 시간별 통계
-router.route('/chattingStatistics/:date').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음	
-		dao.chattingStatistics(req.params, function(data) {
-			res.status(200).send(data);
-		});
-
+router.route('/chattingStatistics/:date').get( async (req, res) => {
+	try {
+		let data = await dao.chattingStatistics(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
 // 채팅수 통계
-router.route('/chattingRanking/:date').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.chattingRanking(req.params, function(data) {
-			res.status(200).send(data);
-		});
+router.route('/chattingRanking/:date').get( async (req, res) => {
+	try {
+		let data = await dao.chattingRanking(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
 //채팅수 통계
-router.route('/chattingTotalRanking/:offset').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.chattingTotalRanking(req.params, function(data) {
-			res.status(200).send(data);
-		});
+router.route('/chattingTotalRanking/:offset').get( async (req, res) => {
+	try {
+		let data = await dao.chattingTotalRanking(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
 //접속유저수 통계
 router.route('/uniqueUser/:date').get( async (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		try {
-			let data = await dao.uniqueUser(req.params);
-			res.status(200).send(data);
-		} catch (err) {
-			console.log(err);
-			res.status(500).send(err);
-		}	
-	}
+	
+	try {
+		let data = await dao.uniqueUser(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
+	}		
 });
 
 // 파일전송일별통계
-router.route('/fileRecvDataPerDay/:date').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.fileRecvDataPerDay(req.params, function(data) {
-			res.status(200).send(data);
-		});
+router.route('/fileRecvDataPerDay/:date').get( async (req, res) => {
+	
+	try {
+		let data = await dao.fileRecvDataPerDay(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
 // 파일전송닉네임별통계
-router.route('/fileRecvDataByNickName/:nickname').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		dao.fileRecvDataByNickName(req.params, function(data) {
-			res.status(200).send(data);
-		});
+router.route('/fileRecvDataByNickName/:nickname').get( async (req, res) => {
+	
+	try {
+		let data = await dao.fileRecvDataByNickName(req.params);
+		res.status(200).send(data);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
 	}
 });
 
@@ -371,22 +393,20 @@ router.route('/callCount').get( (req, res) => {
 
 // 서버의 파일 확인
 router.route('/file').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		var fs = require('fs');
+	var fs = require('fs');
 
-		fs.readdir(directory, function(error, filelist) {
-			res.status(200).send(filelist);
-		});
-	}
+	fs.readdir(directory, function(error, filelist) {
+		res.status(200).send(filelist);
+	});
+	
 });
 
 // 파일 다운로드
 router.route('/fileDown/:name').get( (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		var orgName = req.params.name;
-		var fileDir = directory + "/" + orgName;
-		res.download(fileDir);
-	}
+	
+	var orgName = req.params.name;
+	var fileDir = directory + "/" + orgName;
+	res.download(fileDir);
 });
 
 //zrevrange 
@@ -447,9 +467,10 @@ app.all('*', (req, res) => {
 });
 
 var process = require('process');
+
 process.on('uncaughtException', function(err) {
 	console.error('예기치 못한 에러', err);
-	smtp.sendMail("예기치 못한 에러" + err);
+	// smtp.sendMail("예기치 못한 에러" + err);
 });
 
 var request = http.request({

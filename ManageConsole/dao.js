@@ -25,7 +25,7 @@ var selectId = ( async (params) => {
 	return data;
 });
 
-var directionCountPerDay = ((params, callback) => {
+var directionCountPerDay = ( async (params, callback) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -35,18 +35,17 @@ var directionCountPerDay = ((params, callback) => {
 	var querystring = "select count(*) as cnt from cso_direction with (nolock) " +
 			"where logdate between @fromTime and @toTime";
 	
-	request.query(querystring, function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
-var chattingCountPerDay = ((params, callback) => {
+var chattingCountPerDay = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -56,18 +55,17 @@ var chattingCountPerDay = ((params, callback) => {
 	var querystring = "select count(*) as cnt from cso_chatting with (nolock)" +
 			" where logdate between @fromTime and @toTime";
 	
-	request.query(querystring, function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
-var chattingStatistics = ((params, callback) => {
+var chattingStatistics = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -78,17 +76,17 @@ var chattingStatistics = ((params, callback) => {
 			"from cso_chatting with (nolock) where " +
 			"logdate between @fromTime and @toTime) G group by G.cnt_hour";
 	
-	request.query(querystring, function (err, result) {
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
-var chattingRanking = ((params, callback) => {
+var chattingRanking = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -98,17 +96,17 @@ var chattingRanking = ((params, callback) => {
 	var querystring = "select top 10 nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
 			"where logdate between @fromTime and @toTime group by nickname order by chatnum desc";
 	
-	request.query(querystring, function (err, result) {
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
-var chattingTotalRanking = ((params, callback) => {
+var chattingTotalRanking = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -122,14 +120,14 @@ var chattingTotalRanking = ((params, callback) => {
 	var querystring = "select nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
 			"group by nickname order by chatnum desc offset @num rows fetch next 10 rows only";
 	
-	request.query(querystring, function (err, result) {
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
 
@@ -165,7 +163,7 @@ var uniqueUser = ( async (params) => {
 	return data;
 });
 
-var fileRecvDataPerDay = ((params, callback) => {
+var fileRecvDataPerDay = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -175,18 +173,17 @@ var fileRecvDataPerDay = ((params, callback) => {
 	var querystring = "select * from cso_filerecv with (nolock, index(idx_filerecv_1))" +
 			" where regdate between @fromTime and @toTime";
 	
-	request.query(querystring, function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
-var fileRecvDataByNickName = ((params, callback) => {
+var fileRecvDataByNickName = ( async (params) => {
 	
 	// Query 
 	var request = new mssql.Request();
@@ -195,15 +192,14 @@ var fileRecvDataByNickName = ((params, callback) => {
 	var querystring = "select * from cso_filerecv with (nolock, index(pk_cso_filerecv))" +
 			" where nickname = @nickname";
 	
-	request.query(querystring, function (err, result) {
-	
-		// ... error checks 
-		if(!err) {
-			callback(result.recordset);	    	
-		} else { 
-			console.log(err);	
-		} 
+	let data = await request.query(querystring)
+	.then((result) => {
+		return result.recordset;
+	})
+	.catch((err) => {
+		console.log(err);
 	});
+	return data;
 });
 
 module.exports.selectId = selectId;
