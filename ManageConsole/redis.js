@@ -13,9 +13,16 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 
 });
 
-var set = ((key, value) => {
+var set = ( async (key, value) => {
 	
-	db.set(key, value);
+	let data = await db.set(key, value)
+	.then((result) => {
+		return result;
+	})
+	.catch((err) => {
+		throw err;
+	})
+	return data;
 });
 
 var get = ( async (key) => {
@@ -25,7 +32,7 @@ var get = ( async (key) => {
 		return result;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	})
 	return data;
 });
@@ -43,14 +50,20 @@ var zrevrange = ( async (key ,cnt) => {
 		return result;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
 
-var zadd = ((key , number, value) => {
+var zadd = ( async (key , number, value) => {
 	
-	db.zadd(key, number, value);
+	let data = await db.zadd(key, number, value).then((result) => {
+		return result;
+	})
+	.catch((err) => {
+		throw err;
+	})
+	return data;
 });
 
 var hmget = ( async (key , field) => {
@@ -61,7 +74,7 @@ var hmget = ( async (key , field) => {
 		return result;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -74,7 +87,7 @@ var hgetall = ( async (key) => {
 		return result;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });

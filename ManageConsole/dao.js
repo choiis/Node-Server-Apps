@@ -20,7 +20,7 @@ var selectId = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -40,7 +40,7 @@ var directionCountPerDay = ( async (params, callback) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -60,7 +60,7 @@ var chattingCountPerDay = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -81,7 +81,7 @@ var chattingStatistics = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -101,7 +101,7 @@ var chattingRanking = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -125,7 +125,7 @@ var chattingTotalRanking = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -135,11 +135,11 @@ var calcDaily = ( async () => {
 	// Query 
 	var request = new mssql.Request();
 	
-	let data = await request.query("exec calc_daily 1").then(function() {
+	let data = await request.query("exec calc_daily 1").then(() => {
 		return 1;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -158,7 +158,7 @@ var uniqueUser = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -178,7 +178,7 @@ var fileRecvDataPerDay = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });
@@ -197,7 +197,7 @@ var fileRecvDataByNickName = ( async (params) => {
 		return result.recordset;
 	})
 	.catch((err) => {
-		console.log(err);
+		throw err;
 	});
 	return data;
 });

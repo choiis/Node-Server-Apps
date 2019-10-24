@@ -58,7 +58,7 @@
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.errorCode + " " + errorData.errorMsg);
+		    	alert(errorData.code + " " + errorData.name);
 		    }
 		});
 		
@@ -87,7 +87,6 @@
 	
 	/** null 체크*/
 	var gfn_isNull = function(obj) {
-
 		if(obj == undefined) {
 			return true;
 		} else if(obj == null) {

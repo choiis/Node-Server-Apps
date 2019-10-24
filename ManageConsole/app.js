@@ -170,7 +170,7 @@ router.route('/login').post( async (req, res) => {
 			res.status(200).send(data);
 		}
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -264,7 +264,7 @@ router.route('/directionCountPerDay/:date').get( async (req, res) => {
 		let data = await dao.directionCountPerDay(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -275,7 +275,7 @@ router.route('/chattingCountPerDay/:date').get( async (req, res) => {
 		let data = await dao.chattingCountPerDay(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -286,7 +286,7 @@ router.route('/chattingStatistics/:date').get( async (req, res) => {
 		let data = await dao.chattingStatistics(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -297,7 +297,7 @@ router.route('/chattingRanking/:date').get( async (req, res) => {
 		let data = await dao.chattingRanking(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -308,7 +308,7 @@ router.route('/chattingTotalRanking/:offset').get( async (req, res) => {
 		let data = await dao.chattingTotalRanking(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -320,7 +320,7 @@ router.route('/uniqueUser/:date').get( async (req, res) => {
 		let data = await dao.uniqueUser(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}		
 });
@@ -332,7 +332,7 @@ router.route('/fileRecvDataPerDay/:date').get( async (req, res) => {
 		let data = await dao.fileRecvDataPerDay(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -344,7 +344,7 @@ router.route('/fileRecvDataByNickName/:nickname').get( async (req, res) => {
 		let data = await dao.fileRecvDataByNickName(req.params);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("DB Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -371,7 +371,7 @@ router.route('/callCount').get( (req, res) => {
 				try {
 					var json1 = JSON.parse(packetCnt.toString('utf-8'));
 					res.status(200).send(json1);
-				} catch (e) {
+				} catch (err) {
 					var json2 = {
 						"packet" : 0,
 						"cnt" : 0
@@ -416,7 +416,7 @@ router.route('/zrevrange/:key/:cnt').get( async (req, res) => {
 		let data = await redis.zrevrange(req.params.key, req.params.cnt);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("Redis Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -428,7 +428,7 @@ router.route('/redisGet/:key').get( async (req, res) => {
 		let data = await redis.get(req.params.key);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("Redis Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -441,7 +441,7 @@ router.route('/hmget/:key/:field').get( async (req, res) => {
 		let data = await redis.hmget(req.params.key, req.params.field);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("Redis Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -453,7 +453,7 @@ router.route('/hgetall/:key').get( async (req, res) => {
 		let data = await redis.hgetall(req.params.key);
 		res.status(200).send(data);
 	} catch (err) {
-		console.log(err);
+		console.log("Redis Error " + err);
 		res.status(500).send(err);
 	}
 });
@@ -469,8 +469,20 @@ app.all('*', (req, res) => {
 var process = require('process');
 
 process.on('uncaughtException', function(err) {
-	console.error('예기치 못한 에러', err);
+	if(err.code === "ETIMEDOUT") {
+		console.error("ETIMEDOUT ", err);
+	} else if (err.code === "ECONNREFUSED") {
+		console.error('ECONNREFUSED ', err);	
+	} else if (err.code === "EHOSTUNREACH") {
+		console.error('EHOSTUNREACH ', err);	
+	} else {
+		console.error('uncaughtException ', err);	
+	}
 	// smtp.sendMail("예기치 못한 에러" + err);
+});
+
+process.on('unhandledRejection' , (reason , p) => {
+	console.error(reason, 'Unhandled Rejection at Promise', p);
 });
 
 var request = http.request({
@@ -489,6 +501,6 @@ cron.schedule('20 13 * * *', async () => {
 			console.log("calcDaily");
 		}
 	} catch (err) {
-		console.log(err);
+		console.log("batch " + err);
 	}
 }).start();
