@@ -2,23 +2,27 @@
 var mssql = require('mssql');
 var fs = require('fs'); // 파일목록 탐색
 
-fs.readFile('sqlserver.properties', 'utf8', function(err, data) {
-	var json = JSON.parse(data);
+var init = ( () => {
 
-	var config = {
-		user : json.user,
-		password : json.password,
-		server : json.server,
-		port : json.port,
-		database : json.database
-	};
-	// Global connection으로 만듬
-	mssql.connect(config).then(() => {
-		console.log("sqlserver connection success");
-	})
-	.catch((err) => {
-		console.log(err);
-	});;
+	fs.readFile('sqlserver.properties', 'utf8', function(err, data) {
+		var json = JSON.parse(data);
+
+		var config = {
+			user : json.user,
+			password : json.password,
+			server : json.server,
+			port : json.port,
+			database : json.database
+		};
+		// Global connection으로 만듬
+		mssql.connect(config).then(() => {
+			console.log("sqlserver connection success");
+		})
+		.catch((err) => {
+			console.log(err);
+		});;
+	});
+	
 });
 
 var insertSql = ( async (sql) => {
@@ -35,4 +39,5 @@ var insertSql = ( async (sql) => {
 });
 
 
+module.exports.init = init;
 module.exports.insertSql = insertSql;
