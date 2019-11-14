@@ -224,10 +224,30 @@
 					html += '<tr>';
 	            	html += '<td scope="col" width="50">' + index + '</td>';
 	            	html += '<td scope="col" width="100"><a href="/fileDown/' + item + '">' + item + '</a></td>';
+	            	html += '<td scope="col" width="50"><input type="button" value="삭제" onclick="deleteFile(' + index + ')"></td>';
 	           		html += '</tr>';
 				});
 				$("#viewTbody").empty();
 		        $("#viewTbody").html(html);
+			},
+		    error : function(data, status, error) {
+		    	var errorData = JSON.parse(data.responseText);
+		    	alert(errorData.code + " " + errorData.name);
+		    }
+		});
+	};
+	
+	
+	function deleteFile(index) {
+		var fileName = $("#viewTbody").find("tr").eq(index).find("td").eq(1).text();
+
+		$.ajax({
+		    url : "/fileDelete/"+ fileName,
+		    type : "DELETE",
+		    dataType : "json",
+		    cache : false,
+		    success : function(data) {
+				fileList();
 			},
 		    error : function(data, status, error) {
 		    	var errorData = JSON.parse(data.responseText);
@@ -561,12 +581,14 @@
 				<table border = "1">
 				<colgroup>
 					<col width="50">
-					<col width="100">		
+					<col width="100">
+					<col width="50">	
 				</colgroup>
 				<thead>
 				<tr>
 					<th scope="col">번호</th>
 					<th scope="col">파일명</th>
+					<th scope="col">삭제</th>
 				</tr>
 				</thead>
 				<tbody id="viewTbody">

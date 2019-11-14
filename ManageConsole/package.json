@@ -13,6 +13,7 @@
     "express-error-handler": "^1.1.0",
     "express-session": "^1.16.2",
     "helmet": "^3.21.0",
+    "http-status-codes": "^1.4.0",
     "init": "^0.1.2",
     "mssql": "^5.1.0",
     "node-cron": "^2.0.3",

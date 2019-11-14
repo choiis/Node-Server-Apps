@@ -21,6 +21,8 @@ var router = express.Router();
 var net = require('net');
 var helmet = require('helmet');
 var cron = require('node-cron');
+
+var HttpStatus = require('http-status-codes');
 var client = new net.Socket();
 
 var serverSwitch = false;
@@ -164,14 +166,14 @@ router.route('/login').post( async (req, res) => {
 				lastlogdate : data[0].lastlogdate,
 				adminyn : data[0].adminyn
 			};
-			res.status(200).send(data);
+			res.status(HttpStatus.OK).send(data);
 		} else {
 			console.log("login fail");
-			res.status(200).send(data);
+			res.status(HttpStatus.OK).send(data);
 		}
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -225,12 +227,12 @@ router.route('/initButton').get( (req, res) => {
 			var json = {
 				"status" : des[0].pm2_env.status
 			};
-			res.status(200).send(json);
+			res.status(HttpStatus.OK).send(json);
 		} else {
 			var json2 = {
 				"status" : "none"
 			};
-			res.status(200).send(json2);
+			res.status(HttpStatus.OK).send(json2);
 		}
 
 	});
@@ -253,7 +255,7 @@ router.route('/ban/:banName').delete( (req, res) => {
 		}
 		client.write(packet, function() {
 			var data = {};
-			res.status(200).send(data);
+			res.status(HttpStatus.OK).send(data);
 		});
 	}
 });
@@ -262,10 +264,10 @@ router.route('/ban/:banName').delete( (req, res) => {
 router.route('/directionCountPerDay/:date').get( async (req, res) => {
 	try {
 		let data = await dao.directionCountPerDay(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -273,10 +275,10 @@ router.route('/directionCountPerDay/:date').get( async (req, res) => {
 router.route('/chattingCountPerDay/:date').get( async (req, res) => {
 	try {
 		let data = await dao.chattingCountPerDay(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -284,10 +286,10 @@ router.route('/chattingCountPerDay/:date').get( async (req, res) => {
 router.route('/chattingStatistics/:date').get( async (req, res) => {
 	try {
 		let data = await dao.chattingStatistics(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -295,10 +297,10 @@ router.route('/chattingStatistics/:date').get( async (req, res) => {
 router.route('/chattingRanking/:date').get( async (req, res) => {
 	try {
 		let data = await dao.chattingRanking(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -306,10 +308,10 @@ router.route('/chattingRanking/:date').get( async (req, res) => {
 router.route('/chattingTotalRanking/:offset').get( async (req, res) => {
 	try {
 		let data = await dao.chattingTotalRanking(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -318,10 +320,10 @@ router.route('/uniqueUser/:date').get( async (req, res) => {
 	
 	try {
 		let data = await dao.uniqueUser(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}		
 });
 
@@ -330,10 +332,10 @@ router.route('/fileRecvDataPerDay/:date').get( async (req, res) => {
 	
 	try {
 		let data = await dao.fileRecvDataPerDay(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -342,10 +344,10 @@ router.route('/fileRecvDataByNickName/:nickname').get( async (req, res) => {
 	
 	try {
 		let data = await dao.fileRecvDataByNickName(req.params);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("DB Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -370,13 +372,13 @@ router.route('/callCount').get( (req, res) => {
 
 				try {
 					var json1 = JSON.parse(packetCnt.toString('utf-8'));
-					res.status(200).send(json1);
+					res.status(HttpStatus.OK).send(json1);
 				} catch (err) {
 					var json2 = {
 						"packet" : 0,
 						"cnt" : 0
 					};
-					res.status(200).send(json2);
+					res.status(HttpStatus.OK).send(json2);
 				}
 				client.removeAllListeners('data');
 			});
@@ -386,7 +388,7 @@ router.route('/callCount').get( (req, res) => {
 				'cnt' : 0,
 				'packet' : "0"
 			};
-			res.status(200).send(arr);
+			res.status(HttpStatus.OK).send(arr);
 		}
 	}
 });
@@ -396,7 +398,7 @@ router.route('/file').get( (req, res) => {
 	var fs = require('fs');
 
 	fs.readdir(directory, function(error, filelist) {
-		res.status(200).send(filelist);
+		res.status(HttpStatus.OK).send(filelist);
 	});
 	
 });
@@ -405,8 +407,40 @@ router.route('/file').get( (req, res) => {
 router.route('/fileDown/:name').get( (req, res) => {
 	
 	var orgName = req.params.name;
+	
 	var fileDir = directory + "/" + orgName;
-	res.download(fileDir);
+	fs.exists(fileDir, function(exist) {
+
+		if(exist) {
+			res.status(HttpStatus.OK).download(fileDir);		
+		} else {
+			res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('file not exist');
+		}
+	})
+	
+});
+
+//파일 삭제
+router.route('/fileDelete/:name').delete( (req, res) => {
+	
+	var orgName = req.params.name;
+	var fileDir = directory + "/" + orgName;
+	
+	fs.exists(fileDir, function(exist) {
+
+		if(exist) {
+			fs.unlink(fileDir, (err) => {
+				if(err) {
+					throw err;
+				}
+				console.log('file deleted');
+				res.status(HttpStatus.OK).send(HttpStatus.OK);
+			});		
+		} else {
+			res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('file not exist');
+		}
+	})	
+	
 });
 
 //zrevrange 
@@ -414,10 +448,10 @@ router.route('/zrevrange/:key/:cnt').get( async (req, res) => {
 
 	try {
 		let data = await redis.zrevrange(req.params.key, req.params.cnt);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("Redis Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -426,10 +460,10 @@ router.route('/redisGet/:key').get( async (req, res) => {
 
 	try {
 		let data = await redis.get(req.params.key);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("Redis Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -439,10 +473,10 @@ router.route('/hmget/:key/:field').get( async (req, res) => {
 
 	try {
 		let data = await redis.hmget(req.params.key, req.params.field);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("Redis Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -451,10 +485,10 @@ router.route('/hgetall/:key').get( async (req, res) => {
 
 	try {
 		let data = await redis.hgetall(req.params.key);
-		res.status(200).send(data);
+		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
 		console.log("Redis Error " + err);
-		res.status(500).send(err);
+		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
 
@@ -463,7 +497,7 @@ app.use('/', router);
 
 // 예외화면
 app.all('*', (req, res) => {
-	res.status(404).send('<h1>Page Not Found</h1>');
+	res.status(HttpStatus.NOT_FOUND).send('<h1>Page Not Found</h1>');
 });
 
 var process = require('process');
@@ -488,8 +522,8 @@ process.on('unhandledRejection' , (reason , p) => {
 var request = http.request({
 	path : "/"
 }, function(res) {
-	res.on("error", function() {
-		console.log("error");
+	res.on("error", function(err) {
+		console.log("error " + err);
 	});
 });
 
