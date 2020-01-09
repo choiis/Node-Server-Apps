@@ -155,7 +155,12 @@ var uniqueUser = ( async (params) => {
 	
 	let data = await request.query(querystring)
 	.then((result) => {
-		return result.recordset;
+		if(result.recordset.length > 0) {
+			return result.recordset;
+		} else {
+			var res = [{ uniqueuser: -1 }];
+			return res;
+		}
 	})
 	.catch((err) => {
 		throw err;

@@ -34,10 +34,9 @@ client.on('close', function() {
 // ===== 뷰 엔진 설정 =====//
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
-
 // body-parser를 이용해 application/x-www-form-urlencoded 파싱
 app.use(bodyParser.urlencoded({
-	extended : true
+	extended : false
 }));
 // body-parser를 이용해 application/json 파싱
 app.use(bodyParser.json());
@@ -89,7 +88,7 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 });
 
 // 메모리 CPU 모니터
-router.route('/monitor').get( (req, res) => {
+router.get('/monitor', (req, res) => {
 
 	pm2.describe("Server.exe", (err, des) => {
 		res.send(des);
@@ -97,7 +96,7 @@ router.route('/monitor').get( (req, res) => {
 });
 
 // 서버 on/off기능 라우터
-router.route('/serverSwitch').put( (req, res) => {
+router.put('/serverSwitch', (req, res) => {
 	if (req.body.off === "1") { // 서버켜기
 
 		pm2.start(exelocation, {
@@ -147,14 +146,31 @@ router.route('/serverSwitch').put( (req, res) => {
 
 // 기본 Path
 app.get('/', (req, res) => {
+
 	res.render('index', {
 		myCss : cssSheet
 	});
 });
 
+app.use((req, res, next) => { // 미들웨어
+	//console.log("middle");
+	console.log(req.url);
+	//console.log(req.params);
+	//console.log(req.body);
+	next();
+});
+
+app.use((err, req, res, next) => { // 에러 처리 부분
+	console.log("err stack");
+	console.error(err.stack); // 에러 메시지 표시
+	res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('INTERNAL_SERVER_ERROR'); // 500 상태 표시 후 에러 메시지 전송
+});
+
 // 로그인 router
-router.route('/login').post( async (req, res) => {
+router.post('/login', async (req, res) => {
+
 	try {
+		
 		let data = await dao.selectId(req.body);
 
 		if (data.length > 0) {
@@ -178,7 +194,7 @@ router.route('/login').post( async (req, res) => {
 });
 
 // 로그아웃 router
-router.route('/logout').get( (req, res) => {
+router.get('/logout', (req, res) => {
 
 	if (req.session.user) {
 
@@ -195,7 +211,7 @@ router.route('/logout').get( (req, res) => {
 });
 
 // 메인화면 router
-router.route('/main').get( (req, res) => {
+router.get('/main', (req, res) => {
 	if (req.session.user) { // 세선정보 있음
 
 		if (req.session.user.adminyn === 1) {
@@ -221,7 +237,7 @@ router.route('/main').get( (req, res) => {
 });
 
 // 관리자화면 로딩시 서버 on off 상태 확인
-router.route('/initButton').get( (req, res) => {
+router.get('/initButton', (req, res) => {
 	pm2.describe("Server.exe", function(err, des) {
 		if (!common.gfn_isNull(des[0])) {
 			var json = {
@@ -239,7 +255,7 @@ router.route('/initButton').get( (req, res) => {
 });
 
 // 멤버 강퇴
-router.route('/ban/:banName').delete( (req, res) => {
+router.delete('/ban/:banName', (req, res) => {
 	if (req.session.user) { // 세선정보 있음
 		var banName = Buffer.from(req.params.banName);
 		// Chatting Server의 Packet유형으로 전달한다
@@ -261,7 +277,7 @@ router.route('/ban/:banName').delete( (req, res) => {
 });
 
 // 1초당 지시패킷
-router.route('/directionCountPerDay/:date').get( async (req, res) => {
+router.get('/directionCountPerDay/:date', async (req, res) => {
 	try {
 		let data = await dao.directionCountPerDay(req.params);
 		res.status(HttpStatus.OK).send(data);
@@ -272,7 +288,7 @@ router.route('/directionCountPerDay/:date').get( async (req, res) => {
 });
 
 // 1초당 채팅패킷
-router.route('/chattingCountPerDay/:date').get( async (req, res) => {
+router.get('/chattingCountPerDay/:date', async (req, res) => {
 	try {
 		let data = await dao.chattingCountPerDay(req.params);
 		res.status(HttpStatus.OK).send(data);
@@ -283,7 +299,7 @@ router.route('/chattingCountPerDay/:date').get( async (req, res) => {
 });
 
 // 시간별 통계
-router.route('/chattingStatistics/:date').get( async (req, res) => {
+router.get('/chattingStatistics/:date', async (req, res) => {
 	try {
 		let data = await dao.chattingStatistics(req.params);
 		res.status(HttpStatus.OK).send(data);
@@ -294,7 +310,7 @@ router.route('/chattingStatistics/:date').get( async (req, res) => {
 });
 
 // 채팅수 통계
-router.route('/chattingRanking/:date').get( async (req, res) => {
+router.get('/chattingRanking/:date', async (req, res) => {
 	try {
 		let data = await dao.chattingRanking(req.params);
 		res.status(HttpStatus.OK).send(data);
@@ -305,7 +321,7 @@ router.route('/chattingRanking/:date').get( async (req, res) => {
 });
 
 //채팅수 통계
-router.route('/chattingTotalRanking/:offset').get( async (req, res) => {
+router.get('/chattingTotalRanking/:offset', async (req, res) => {
 	try {
 		let data = await dao.chattingTotalRanking(req.params);
 		res.status(HttpStatus.OK).send(data);
@@ -316,7 +332,7 @@ router.route('/chattingTotalRanking/:offset').get( async (req, res) => {
 });
 
 //접속유저수 통계
-router.route('/uniqueUser/:date').get( async (req, res) => {
+router.get('/uniqueUser/:date', async (req, res) => {
 	
 	try {
 		let data = await dao.uniqueUser(req.params);
@@ -328,7 +344,7 @@ router.route('/uniqueUser/:date').get( async (req, res) => {
 });
 
 // 파일전송일별통계
-router.route('/fileRecvDataPerDay/:date').get( async (req, res) => {
+router.get('/fileRecvDataPerDay/:date', async (req, res) => {
 	
 	try {
 		let data = await dao.fileRecvDataPerDay(req.params);
@@ -340,7 +356,7 @@ router.route('/fileRecvDataPerDay/:date').get( async (req, res) => {
 });
 
 // 파일전송닉네임별통계
-router.route('/fileRecvDataByNickName/:nickname').get( async (req, res) => {
+router.get('/fileRecvDataByNickName/:nickname', async (req, res) => {
 	
 	try {
 		let data = await dao.fileRecvDataByNickName(req.params);
@@ -352,7 +368,7 @@ router.route('/fileRecvDataByNickName/:nickname').get( async (req, res) => {
 });
 
 // 로그인 유저수
-router.route('/callCount').get( (req, res) => {
+router.get('/callCount', (req, res) => {
 	if (req.session.user) { // 세선정보 있음
 		if (serverSwitch) { // 서버 켜진 상태
 
@@ -394,7 +410,7 @@ router.route('/callCount').get( (req, res) => {
 });
 
 // 서버의 파일 확인
-router.route('/file').get( (req, res) => {
+router.get('/file', (req, res) => {
 	var fs = require('fs');
 
 	fs.readdir(directory, function(error, filelist) {
@@ -404,7 +420,7 @@ router.route('/file').get( (req, res) => {
 });
 
 // 파일 다운로드
-router.route('/fileDown/:name').get( (req, res) => {
+router.get('/fileDown/:name', (req, res) => {
 	
 	var orgName = req.params.name;
 	
@@ -421,7 +437,7 @@ router.route('/fileDown/:name').get( (req, res) => {
 });
 
 //파일 삭제
-router.route('/fileDelete/:name').delete( (req, res) => {
+router.delete('/fileDelete/:name', (req, res) => {
 	
 	var orgName = req.params.name;
 	var fileDir = directory + "/" + orgName;
@@ -444,7 +460,7 @@ router.route('/fileDelete/:name').delete( (req, res) => {
 });
 
 //zrevrange 
-router.route('/zrevrange/:key/:cnt').get( async (req, res) => {
+router.get('/zrevrange/:key/:cnt', async (req, res) => {
 
 	try {
 		let data = await redis.zrevrange(req.params.key, req.params.cnt);
@@ -456,7 +472,7 @@ router.route('/zrevrange/:key/:cnt').get( async (req, res) => {
 });
 
 // redis get 
-router.route('/redisGet/:key').get( async (req, res) => {
+router.get('/redisGet/:key', async (req, res) => {
 
 	try {
 		let data = await redis.get(req.params.key);
@@ -469,7 +485,7 @@ router.route('/redisGet/:key').get( async (req, res) => {
 
 
 //redis hmget 
-router.route('/hmget/:key/:field').get( async (req, res) => {
+router.get('/hmget/:key/:field', async (req, res) => {
 
 	try {
 		let data = await redis.hmget(req.params.key, req.params.field);
@@ -481,7 +497,7 @@ router.route('/hmget/:key/:field').get( async (req, res) => {
 });
 
 //redis hgetall 
-router.route('/hgetall/:key').get( async (req, res) => {
+router.get('/hgetall/:key', async (req, res) => {
 
 	try {
 		let data = await redis.hgetall(req.params.key);
