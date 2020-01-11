@@ -25,6 +25,10 @@ var cron = require('node-cron');
 var HttpStatus = require('http-status-codes');
 var client = new net.Socket();
 
+// csrf셋팅
+// var csrf = require('csurf');
+//var csrfProtection = csrf({cookie : true});
+
 var serverSwitch = false;
 
 client.on('close', function() {
@@ -48,6 +52,7 @@ app.use(expressSession({
 	resave : true,
 	saveUninitialized : true
 }));
+
 // 시큐어 코딩
 // helmet => http 헤더 9개 설정 조작
 // X-Frame-Options헤더 설정
@@ -152,11 +157,19 @@ app.get('/', (req, res) => {
 	});
 });
 
+function XSSFilter(content) {
+	return content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 app.use((req, res, next) => { // 미들웨어
-	//console.log("middle");
-	console.log(req.url);
-	//console.log(req.params);
-	//console.log(req.body);
+	console.log("middle");
+	//console.log(req.url);
+	if(req.method === 'POST' || req.method === 'PUT') {
+		for(key in req.body) {
+			req.body[key] = XSSFilter(req.body[key]);
+		}
+	}
+	
 	next();
 });
 
