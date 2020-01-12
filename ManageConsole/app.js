@@ -13,6 +13,7 @@ var dao = require('./dao');
 var common = require('./common');
 var smtp = require('./smtp');
 var redis = require('./redis');
+var routers = require('./routers');
 // 익스프레스 객체 생성
 var app = express();
 
@@ -20,14 +21,13 @@ var router = express.Router();
 
 var net = require('net');
 var helmet = require('helmet');
-var cron = require('node-cron');
 
 var HttpStatus = require('http-status-codes');
 var client = new net.Socket();
 
 // csrf셋팅
-// var csrf = require('csurf');
-//var csrfProtection = csrf({cookie : true});
+var csrf = require('csurf');
+var csrfProtection = csrf({cookie : true});
 
 var serverSwitch = false;
 
@@ -69,6 +69,44 @@ app.disable('x-powered-by'); // => app.use(helmet.hidePoweredBy());
 var cssSheet = {
 	style : fs.readFileSync('views/style.css', 'utf8')
 };
+
+//기본 Path
+app.get('/', (req, res) => {
+
+	res.render('index', {
+		myCss : cssSheet
+	});
+});
+
+function XSSFilter(content) {
+	return content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+app.use((req, res, next) => { // 미들웨어
+	console.log("middle");
+	//console.log(req.url);
+	if(req.method === 'POST' || req.method === 'PUT') {
+		for(key in req.body) {
+			req.body[key] = XSSFilter(req.body[key]);
+		}
+	}
+	
+	next();
+});
+
+app.use((err, req, res, next) => { // 에러 처리 부분
+	console.log("err stack");
+	console.error(err.stack); // 에러 메시지 표시
+	res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('INTERNAL_SERVER_ERROR'); // 500 상태 표시 후 에러 메시지 전송
+});
+
+//라우터 등록
+app.use('/', router);
+app.use('/', routers);
+// 예외화면
+app.all('*', (req, res) => {
+	res.status(HttpStatus.NOT_FOUND).send('<h1>Page Not Found</h1>');
+});
 
 // pm2 연결
 pm2.connect(function(err) {
@@ -149,35 +187,6 @@ router.put('/serverSwitch', (req, res) => {
 	}
 });
 
-// 기본 Path
-app.get('/', (req, res) => {
-
-	res.render('index', {
-		myCss : cssSheet
-	});
-});
-
-function XSSFilter(content) {
-	return content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-app.use((req, res, next) => { // 미들웨어
-	console.log("middle");
-	//console.log(req.url);
-	if(req.method === 'POST' || req.method === 'PUT') {
-		for(key in req.body) {
-			req.body[key] = XSSFilter(req.body[key]);
-		}
-	}
-	
-	next();
-});
-
-app.use((err, req, res, next) => { // 에러 처리 부분
-	console.log("err stack");
-	console.error(err.stack); // 에러 메시지 표시
-	res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('INTERNAL_SERVER_ERROR'); // 500 상태 표시 후 에러 메시지 전송
-});
 
 // 로그인 router
 router.post('/login', async (req, res) => {
@@ -289,96 +298,6 @@ router.delete('/ban/:banName', (req, res) => {
 	}
 });
 
-// 1초당 지시패킷
-router.get('/directionCountPerDay/:date', async (req, res) => {
-	try {
-		let data = await dao.directionCountPerDay(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-// 1초당 채팅패킷
-router.get('/chattingCountPerDay/:date', async (req, res) => {
-	try {
-		let data = await dao.chattingCountPerDay(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-// 시간별 통계
-router.get('/chattingStatistics/:date', async (req, res) => {
-	try {
-		let data = await dao.chattingStatistics(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-// 채팅수 통계
-router.get('/chattingRanking/:date', async (req, res) => {
-	try {
-		let data = await dao.chattingRanking(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-//채팅수 통계
-router.get('/chattingTotalRanking/:offset', async (req, res) => {
-	try {
-		let data = await dao.chattingTotalRanking(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-//접속유저수 통계
-router.get('/uniqueUser/:date', async (req, res) => {
-	
-	try {
-		let data = await dao.uniqueUser(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}		
-});
-
-// 파일전송일별통계
-router.get('/fileRecvDataPerDay/:date', async (req, res) => {
-	
-	try {
-		let data = await dao.fileRecvDataPerDay(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-// 파일전송닉네임별통계
-router.get('/fileRecvDataByNickName/:nickname', async (req, res) => {
-	
-	try {
-		let data = await dao.fileRecvDataByNickName(req.params);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("DB Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
 
 // 로그인 유저수
 router.get('/callCount', (req, res) => {
@@ -472,63 +391,6 @@ router.delete('/fileDelete/:name', (req, res) => {
 	
 });
 
-//zrevrange 
-router.get('/zrevrange/:key/:cnt', async (req, res) => {
-
-	try {
-		let data = await redis.zrevrange(req.params.key, req.params.cnt);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("Redis Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-// redis get 
-router.get('/redisGet/:key', async (req, res) => {
-
-	try {
-		let data = await redis.get(req.params.key);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("Redis Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-
-//redis hmget 
-router.get('/hmget/:key/:field', async (req, res) => {
-
-	try {
-		let data = await redis.hmget(req.params.key, req.params.field);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("Redis Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-//redis hgetall 
-router.get('/hgetall/:key', async (req, res) => {
-
-	try {
-		let data = await redis.hgetall(req.params.key);
-		res.status(HttpStatus.OK).send(data);
-	} catch (err) {
-		console.log("Redis Error " + err);
-		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
-	}
-});
-
-// 라우터 등록
-app.use('/', router);
-
-// 예외화면
-app.all('*', (req, res) => {
-	res.status(HttpStatus.NOT_FOUND).send('<h1>Page Not Found</h1>');
-});
-
 var process = require('process');
 
 process.on('uncaughtException', function(err) {
@@ -556,14 +418,4 @@ var request = http.request({
 	});
 });
 
-// 매일 00시 20분 배치프로그램 실행 => daily Statistics
-cron.schedule('20 13 * * *', async () => {
-	try {
-		let data = await dao.calcDaily();
-		if(data == 1) {
-			console.log("calcDaily");
-		}
-	} catch (err) {
-		console.log("batch " + err);
-	}
-}).start();
+module.exports = app;
