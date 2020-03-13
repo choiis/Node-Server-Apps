@@ -140,50 +140,53 @@ router.get('/monitor', (req, res) => {
 
 // 서버 on/off기능 라우터
 router.put('/serverSwitch', (req, res) => {
-	if (req.body.off === "1") { // 서버켜기
+	if (req.session.user) { // 세선정보 있음
+		if (req.body.off === "1") { // 서버켜기
 
-		pm2.start(exelocation, {
-			name : "Server.exe",
-			watch : true,
-			autorestart : false,
-			output : "stdout.log" // Server의 stdout로그파일
-		}, function(err, apps) {
-			// 채팅서버는 같은 PC에서 동작한다
-			// 서버 on 후에 연결한다
-			console.log("server on");
-			client.connect(1234, 'localhost');
-			serverSwitch = true;
+			pm2.start(exelocation, {
+				name : "Server.exe",
+				watch : true,
+				autorestart : false,
+				output : "stdout.log" // Server의 stdout로그파일
+			}, function(err, apps) {
+				// 채팅서버는 같은 PC에서 동작한다
+				// 서버 on 후에 연결한다
+				console.log("server on");
+				client.connect(1234, 'localhost');
+				serverSwitch = true;
 
+				res.send({
+					flag : 0
+				});
+
+				smtp.sendMail("서버켜짐!");
+			});
+		} else {
+			serverSwitch = false;
+			// client.destroy();
+			//		
+			// pm2.delete("Server.exe", function(err, des) {
+			// res.send({flag:1});
+			// });
+			pm2.stop("Server.exe", function(err) {
+
+			});
+			var packet = Buffer.alloc(20);
+			// 0 2번째 short 바디사이즈
+			packet[0] = 20;
+			// 6 10번째 direction
+			packet[6] = common.EXIT; // direction = > USERCNT
+			client.write(packet, function() {
+				client.destroy();
+			});
 			res.send({
-				flag : 0
+				flag : 1
 			});
 
-			smtp.sendMail("서버켜짐!");
-		});
+			smtp.sendMail("서버꺼짐!");
+		}
 	} else {
-
-		serverSwitch = false;
-		// client.destroy();
-		//		
-		// pm2.delete("Server.exe", function(err, des) {
-		// res.send({flag:1});
-		// });
-		pm2.stop("Server.exe", function(err) {
-
-		});
-		var packet = Buffer.alloc(20);
-		// 0 2번째 short 바디사이즈
-		packet[0] = 20;
-		// 6 10번째 direction
-		packet[6] = common.EXIT; // direction = > USERCNT
-		client.write(packet, function() {
-			client.destroy();
-		});
-		res.send({
-			flag : 1
-		});
-
-		smtp.sendMail("서버꺼짐!");
+		res.status(HttpStatus.UNAUTHORIZED).send({});
 	}
 });
 
@@ -251,11 +254,8 @@ router.get('/main', (req, res) => {
 		}
 
 	} else { // 세션정보 없음
-		res.render('index', {
-			myCss : cssSheet
-		});
-	}
-
+		res.status(HttpStatus.UNAUTHORIZED).send({});
+	} 
 });
 
 // 관리자화면 로딩시 서버 on off 상태 확인
@@ -295,6 +295,8 @@ router.delete('/ban/:banName', (req, res) => {
 			var data = {};
 			res.status(HttpStatus.OK).send(data);
 		});
+	} else {
+		res.status(HttpStatus.UNAUTHORIZED).send({});
 	}
 });
 
@@ -343,52 +345,59 @@ router.get('/callCount', (req, res) => {
 
 // 서버의 파일 확인
 router.get('/file', (req, res) => {
-	var fs = require('fs');
+	if (req.session.user) { // 세선정보 있음
+		var fs = require('fs');
 
-	fs.readdir(directory, function(error, filelist) {
-		res.status(HttpStatus.OK).send(filelist);
-	});
-	
+		fs.readdir(directory, function(error, filelist) {
+			res.status(HttpStatus.OK).send(filelist);
+		});
+	} else {
+		res.status(HttpStatus.FORBIDDEN).send({});
+	}
 });
 
 // 파일 다운로드
 router.get('/fileDown/:name', (req, res) => {
+	if (req.session.user) { // 세선정보 있음
+		var orgName = req.params.name;
 	
-	var orgName = req.params.name;
-	
-	var fileDir = directory + "/" + orgName;
-	fs.exists(fileDir, function(exist) {
+		var fileDir = directory + "/" + orgName;
+		fs.exists(fileDir, function(exist) {
 
-		if(exist) {
-			res.status(HttpStatus.OK).download(fileDir);		
-		} else {
-			res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('file not exist');
-		}
-	})
-	
+			if(exist) {
+				res.status(HttpStatus.OK).download(fileDir);		
+			} else {
+				res.status(HttpStatus.NOT_FOUND).send('file not exist');
+			}
+		})
+	} else {
+		res.status(HttpStatus.FORBIDDEN).send({});
+	}
 });
 
 //파일 삭제
 router.delete('/fileDelete/:name', (req, res) => {
+	if (req.session.user) { // 세선정보 있음
+		var orgName = req.params.name;
+		var fileDir = directory + "/" + orgName;
 	
-	var orgName = req.params.name;
-	var fileDir = directory + "/" + orgName;
-	
-	fs.exists(fileDir, function(exist) {
+		fs.exists(fileDir, function(exist) {
 
-		if(exist) {
-			fs.unlink(fileDir, (err) => {
-				if(err) {
-					throw err;
-				}
-				console.log('file deleted');
-				res.status(HttpStatus.OK).send(HttpStatus.OK);
-			});		
-		} else {
-			res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('file not exist');
-		}
-	})	
-	
+			if(exist) {
+				fs.unlink(fileDir, (err) => {
+					if(err) {
+						throw err;
+					}
+					console.log('file deleted');
+					res.status(HttpStatus.OK).send(HttpStatus.OK);
+				});		
+			} else {
+				res.status(HttpStatus.NOT_FOUND).send('file not exist');
+			}
+		})	
+	} else {
+		res.status(HttpStatus.FORBIDDEN).send({});
+	}
 });
 
 var process = require('process');
