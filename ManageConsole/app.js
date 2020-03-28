@@ -83,14 +83,15 @@ function XSSFilter(content) {
 }
 
 app.use((req, res, next) => { // 미들웨어
-	console.log("middle");
-	//console.log(req.url);
+	
 	if(req.method === 'POST' || req.method === 'PUT') {
 		for(key in req.body) {
 			req.body[key] = XSSFilter(req.body[key]);
 		}
 	}
-	
+	// Cors 모든 도메인에서 허용
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
 	next();
 });
 
@@ -254,7 +255,7 @@ router.get('/main', (req, res) => {
 		}
 
 	} else { // 세션정보 없음
-		res.status(HttpStatus.UNAUTHORIZED).send({});
+		res.redirect('/');
 	} 
 });
 
