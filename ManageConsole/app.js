@@ -1,5 +1,6 @@
 // Express 기본 모듈 불러오기
-var express = require('express'), http = require('http'), path = require('path');
+var express = require('express');
+var https = require('https'), path = require('path');
 
 // const asyncify = require('express-asyncify');
 // const router = asyncify(express.Router());
@@ -109,6 +110,33 @@ app.all('*', (req, res) => {
 	res.status(HttpStatus.NOT_FOUND).send('<h1>Page Not Found</h1>');
 });
 
+
+var process = require('process');
+
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+
+var options = {
+	key: fs.readFileSync('keys/key.pem'),
+	cert: fs.readFileSync('keys/cert.pem')
+};
+
+process.on('uncaughtException', function(err) {
+	if(err.code === "ETIMEDOUT") {
+		console.error("ETIMEDOUT ", err);
+	} else if (err.code === "ECONNREFUSED") {
+		console.error('ECONNREFUSED ', err);	
+	} else if (err.code === "EHOSTUNREACH") {
+		console.error('EHOSTUNREACH ', err);	
+	} else {
+		console.error('uncaughtException ', err);	
+	}
+	// smtp.sendMail("예기치 못한 에러" + err);
+});
+
+process.on('unhandledRejection' , (reason , p) => {
+	console.error(reason, 'Unhandled Rejection at Promise', p);
+});
+
 // pm2 연결
 pm2.connect(function(err) {
 });
@@ -125,10 +153,10 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 	console.log("exelocation : " + exelocation);
 	console.log("directory : " + directory);
 	// node js listen port는 설정파일에 있다
-	app.listen(json.nodeport, function() {
-		console.log('application listening on port ' + json.nodeport + '!');
-	});
-
+	
+	https.createServer(options ,app ,(req, res) => {
+	}).listen(json.nodeport);
+	console.log('application listening on port ' + json.nodeport + '!');
 });
 
 // 메모리 CPU 모니터
@@ -401,26 +429,8 @@ router.delete('/fileDelete/:name', (req, res) => {
 	}
 });
 
-var process = require('process');
 
-process.on('uncaughtException', function(err) {
-	if(err.code === "ETIMEDOUT") {
-		console.error("ETIMEDOUT ", err);
-	} else if (err.code === "ECONNREFUSED") {
-		console.error('ECONNREFUSED ', err);	
-	} else if (err.code === "EHOSTUNREACH") {
-		console.error('EHOSTUNREACH ', err);	
-	} else {
-		console.error('uncaughtException ', err);	
-	}
-	// smtp.sendMail("예기치 못한 에러" + err);
-});
-
-process.on('unhandledRejection' , (reason , p) => {
-	console.error(reason, 'Unhandled Rejection at Promise', p);
-});
-
-var request = http.request({
+var request = https.request({
 	path : "/"
 }, function(res) {
 	res.on("error", function(err) {
