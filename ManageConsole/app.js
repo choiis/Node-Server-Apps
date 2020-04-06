@@ -12,6 +12,7 @@ var pm2 = require('pm2');
 var dao = require('./dao');
 
 var common = require('./common');
+var files = require('./files');
 var smtp = require('./smtp');
 var redis = require('./redis');
 var routers = require('./routers');
@@ -79,15 +80,11 @@ app.get('/', (req, res) => {
 	});
 });
 
-function XSSFilter(content) {
-	return content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 app.use((req, res, next) => { // 미들웨어
 	
 	if(req.method === 'POST' || req.method === 'PUT') {
 		for(key in req.body) {
-			req.body[key] = XSSFilter(req.body[key]);
+			req.body[key] = common.XSSFilter(req.body[key]);
 		}
 	}
 	// Cors 모든 도메인에서 허용
@@ -105,6 +102,7 @@ app.use((err, req, res, next) => { // 에러 처리 부분
 //라우터 등록
 app.use('/', router);
 app.use('/', routers);
+app.use('/', files);
 // 예외화면
 app.all('*', (req, res) => {
 	res.status(HttpStatus.NOT_FOUND).send('<h1>Page Not Found</h1>');
@@ -142,16 +140,14 @@ pm2.connect(function(err) {
 });
 
 //서버 파일 디렉토리
-var directory;
 var exelocation;
 
 // 설정파일 읽어들이기
-fs.readFile('conf.properties', 'utf8', function(err, data) {
+fs.readFile('conf.properties', 'utf8', (err, data) => {
 	var json = JSON.parse(data);
 	exelocation = json.exelocation;
-	directory = json.directory;
 	console.log("exelocation : " + exelocation);
-	console.log("directory : " + directory);
+	files.directory = json.directory;
 	// node js listen port는 설정파일에 있다
 	
 	https.createServer(options ,app ,(req, res) => {
@@ -371,64 +367,6 @@ router.get('/callCount', (req, res) => {
 		}
 	}
 });
-
-// 서버의 파일 확인
-router.get('/file', (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		var fs = require('fs');
-
-		fs.readdir(directory, function(error, filelist) {
-			res.status(HttpStatus.OK).send(filelist);
-		});
-	} else {
-		res.status(HttpStatus.FORBIDDEN).send({});
-	}
-});
-
-// 파일 다운로드
-router.get('/fileDown/:name', (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		var orgName = req.params.name;
-	
-		var fileDir = directory + "/" + orgName;
-		fs.exists(fileDir, function(exist) {
-
-			if(exist) {
-				res.status(HttpStatus.OK).download(fileDir);		
-			} else {
-				res.status(HttpStatus.NOT_FOUND).send('file not exist');
-			}
-		})
-	} else {
-		res.status(HttpStatus.FORBIDDEN).send({});
-	}
-});
-
-//파일 삭제
-router.delete('/fileDelete/:name', (req, res) => {
-	if (req.session.user) { // 세선정보 있음
-		var orgName = req.params.name;
-		var fileDir = directory + "/" + orgName;
-	
-		fs.exists(fileDir, function(exist) {
-
-			if(exist) {
-				fs.unlink(fileDir, (err) => {
-					if(err) {
-						throw err;
-					}
-					console.log('file deleted');
-					res.status(HttpStatus.OK).send(HttpStatus.OK);
-				});		
-			} else {
-				res.status(HttpStatus.NOT_FOUND).send('file not exist');
-			}
-		})	
-	} else {
-		res.status(HttpStatus.FORBIDDEN).send({});
-	}
-});
-
 
 var request = https.request({
 	path : "/"
