@@ -1,11 +1,12 @@
 
-var redis = require('then-redis');
-var createClient = require('then-redis').createClient
+const redis = require('then-redis');
+const createClient = require('then-redis').createClient
 
-var fs = require('fs'); // 파일목록 탐색
-var db;
-fs.readFile('conf.properties', 'utf8', function(err, data) {
-	var json = JSON.parse(data);
+const fs = require('fs'); // 파일목록 탐색
+let db;
+
+fs.readFile('redis.properties', 'utf8', function(err, data) {
+	let json = JSON.parse(data);
 	db = createClient({
 		"host" :json.redisServer,
 		"port" :json.redisPort
@@ -13,8 +14,7 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 
 });
 
-var set = ( async (key, value) => {
-	
+module.exports.set = async (key, value) => {
 	let data = await db.set(key, value)
 	.then((result) => {
 		return result;
@@ -23,9 +23,9 @@ var set = ( async (key, value) => {
 		throw err;
 	})
 	return data;
-});
+};
 
-var get = ( async (key) => {
+module.exports.get = async (key) => {
 	
 	let data = await db.get(key)
 	.then((result) => {
@@ -35,15 +35,15 @@ var get = ( async (key) => {
 		throw err;
 	})
 	return data;
-});
+};
 
-var zrevrange = ( async (key ,cnt) => {
+module.exports.zrevrange = async (key ,cnt) => {
 	
 	let data = await db.zrevrange(key, 0, cnt, 'withscores')
 	.then((array) => {
-		var result = new Array();
+		let result = new Array();
 		for (var i = 0; i < array.length; i+=2) {
-			var json = {};
+			let json = {};
 			json[array[i]] = array[i + 1];
 			result.push(json);
 		}
@@ -53,9 +53,9 @@ var zrevrange = ( async (key ,cnt) => {
 		throw err;
 	});
 	return data;
-});
+};
 
-var zadd = ( async (key , number, value) => {
+module.exports.zadd = async (key , number, value) => {
 	
 	let data = await db.zadd(key, number, value).then((result) => {
 		return result;
@@ -64,9 +64,9 @@ var zadd = ( async (key , number, value) => {
 		throw err;
 	})
 	return data;
-});
+};
 
-var hmget = ( async (key , field) => {
+module.exports.hmget = async (key , field) => {
 	
 	let data = await db.hmget(key, field)
 	.then((result) => {
@@ -77,9 +77,9 @@ var hmget = ( async (key , field) => {
 		throw err;
 	});
 	return data;
-});
+};
 
-var hgetall = ( async (key) => {
+module.exports.hgetall = async (key) => {
 	
 	let data = await db.hgetall(key)
 	.then((result) => {
@@ -90,12 +90,4 @@ var hgetall = ( async (key) => {
 		throw err;
 	});
 	return data;
-});
-
-
-module.exports.set = set;
-module.exports.get = get;
-module.exports.zrevrange = zrevrange;
-module.exports.zadd = zadd;
-module.exports.hmget = hmget;
-module.exports.hgetall = hgetall;
+};

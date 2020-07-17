@@ -2,18 +2,23 @@
  * http://usejsdoc.org/
  */
 
-var express = require('express');
+const express = require('express');
 var fs = require('fs'); // 파일목록 탐색
 var router = express.Router();
 
-var HttpStatus = require('http-status-codes');
+const HttpStatus = require('http-status-codes');
 
 var directory;
+
+fs.readFile('file.properties', 'utf8', function(err, data) {
+	let json = JSON.parse(data);
+	directory = json.directory;
+});
 
 //서버의 파일 확인
 router.get('/file', (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		var fs = require('fs');
+		let fs = require('fs');
 
 		fs.readdir(directory, function(error, filelist) {
 			res.status(HttpStatus.OK).send(filelist);
@@ -26,9 +31,9 @@ router.get('/file', (req, res) => {
 //파일 다운로드
 router.get('/fileDown/:name', (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		var orgName = req.params.name;
+		let orgName = req.params.name;
 	
-		var fileDir = directory + "/" + orgName;
+		let fileDir = directory + "/" + orgName;
 		fs.exists(fileDir, function(exist) {
 
 			if(exist) {
@@ -45,8 +50,8 @@ router.get('/fileDown/:name', (req, res) => {
 //파일 삭제
 router.delete('/fileDelete/:name', (req, res) => {
 	if (req.session.user) { // 세선정보 있음
-		var orgName = req.params.name;
-		var fileDir = directory + "/" + orgName;
+		let orgName = req.params.name;
+		let fileDir = directory + "/" + orgName;
 	
 		fs.exists(fileDir, function(exist) {
 
@@ -67,5 +72,4 @@ router.delete('/fileDelete/:name', (req, res) => {
 	}
 });
 
-module.exports.directory = directory;
 module.exports = router;

@@ -1,4 +1,6 @@
 /ManageConsole/node_modules/
+/ManageConsole/Downloads/
+/ManageConsole/log/
 /Consumer/node_modules/
 /.metadata/.plugins/
 /.metadata/
