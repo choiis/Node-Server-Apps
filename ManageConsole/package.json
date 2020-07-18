@@ -17,6 +17,7 @@
     "http-status-codes": "^1.4.0",
     "init": "^0.1.2",
     "mssql": "^5.1.0",
+    "mybatis-mapper": "^0.6.5",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.3.0",
     "nodemailer-smtp-transport": "^2.7.4",
@@ -24,7 +25,9 @@
     "redis": "^2.8.0",
     "redis-commands": "^1.5.0",
     "server-static": "^2.0.5",
-    "then-redis": "^2.0.1"
+    "then-redis": "^2.0.1",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.0"
   },
   "devDependencies": {},
   "scripts": {

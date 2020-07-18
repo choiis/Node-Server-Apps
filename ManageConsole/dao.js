@@ -3,19 +3,20 @@
  */
 const sqlSession = require('./sqlSession');
 const common = require('./common');
+const mybatisMapper = require('mybatis-mapper');
+mybatisMapper.createMapper([ './sql/mapper.xml' ]);
 
 const mssql = sqlSession.mssql;
+
+const format = {language: 'sql', indent: '  '};
 
 module.exports = {
 	
 	async selectId(params) {
-		// Query 
-		var request = new mssql.Request();
 		
-		request.input('userid', params.userid);
-		request.input('password', params.password);
-		var querystring = "select * from cso_id with (nolock) where userid = @userid and password = @password";
-		
+		let request = new mssql.Request();
+
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'selectId', params, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -27,14 +28,14 @@ module.exports = {
 	},
 
 	async directionCountPerDay(params, callback) {
-		// Query 
-		var request = new mssql.Request();
-	
-		request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
-		request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-		var querystring = "select count(*) as cnt from cso_direction with (nolock) " +
-				"where logdate between @fromTime and @toTime";
 		
+		let request = new mssql.Request();
+		let param = {
+			fromTime : common.gfn_stringToDate(params.date) + " 00:00:00",
+			toTime : common.gfn_stringToDate(params.date) + " 23:59:59"
+		};
+		
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'directionCountPerDay', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -46,14 +47,14 @@ module.exports = {
 	},
 
 	async chattingCountPerDay(params) {
-		// Query 
-		var request = new mssql.Request();
-	
-		request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
-		request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-		var querystring = "select count(*) as cnt from cso_chatting with (nolock)" +
-				" where logdate between @fromTime and @toTime";
 		
+		let request = new mssql.Request();
+		let param = {
+			fromTime : common.gfn_stringToDate(params.date) + " 00:00:00",
+			toTime : common.gfn_stringToDate(params.date) + " 23:59:59"
+		};
+
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'chattingCountPerDay', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -66,14 +67,13 @@ module.exports = {
 	
 	async chattingStatistics(params) {
 		// Query 
-		var request = new mssql.Request();
-		request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
-		request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-		var querystring = "select count(*) as cnt, cnt_hour from " +
-				"(select DATEPART(hour,logdate) as cnt_hour " +
-				"from cso_chatting with (nolock) where " +
-				"logdate between @fromTime and @toTime) G group by G.cnt_hour";
+		let request = new mssql.Request();
+		let param = {
+			fromTime : common.gfn_stringToDate(params.date) + " 00:00:00",
+			toTime : common.gfn_stringToDate(params.date) + " 23:59:59"
+		};
 		
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'chattingStatistics', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -85,14 +85,14 @@ module.exports = {
 	},
 
 	async chattingRanking(params) {
-		// Query 
-		var request = new mssql.Request();
-	
-		request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
-		request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-		var querystring = "select top 10 nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
-				"where logdate between @fromTime and @toTime group by nickname order by chatnum desc";
 		
+		let request = new mssql.Request();
+		let param = {
+			fromTime : common.gfn_stringToDate(params.date) + " 00:00:00",
+			toTime : common.gfn_stringToDate(params.date) + " 23:59:59"
+		};
+
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'chattingRanking', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -104,18 +104,19 @@ module.exports = {
 	},
 	
 	async chattingTotalRanking(params) {
-		// Query 
-		var request = new mssql.Request();
-	
+		
+		let request = new mssql.Request();
+		let param = {
+			num : 0
+		};
+
 		if(common.gfn_isNull(params.offset)) {
-			request.input('num', 0);	
+			param.num = 0;	
 		} else {
-			request.input('num', 10 * (params.offset - 1));
+			param.num =  10 * (params.offset - 1);
 		}
 		
-		var querystring = "select nickname ,count(*) as chatnum from cso_chatting with (nolock) " +
-				"group by nickname order by chatnum desc offset @num rows fetch next 10 rows only";
-		
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'chattingTotalRanking', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -128,9 +129,11 @@ module.exports = {
 
 	async calcDaily(params) {
 		// Query 
-		var request = new mssql.Request();
-		
-		let data = await request.query("exec calc_daily 1").then(() => {
+		let request = new mssql.Request();
+
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'calcDaily', params, format);
+		let data = await request.query(querystring)
+		.then(() => {
 			return 1;
 		})
 		.catch((err) => {
@@ -140,18 +143,19 @@ module.exports = {
 	},
 	
 	async uniqueUser(params) {	
-		// Query 
-		var request = new mssql.Request();
-	
-		request.input('regdate', common.gfn_stringToDate(params.date));
-		var querystring = "select uniqueuser from daily with (nolock) where regdate = @regdate";
 		
+		let request = new mssql.Request();
+		let param = {
+			regdate : common.gfn_stringToDate(params.date)
+		};
+
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'uniqueUser', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			if(result.recordset.length > 0) {
 				return result.recordset;
 			} else {
-				var res = [{ uniqueuser: -1 }];
+				let res = [{ uniqueuser: -1 }];
 				return res;
 			}
 		})
@@ -163,13 +167,13 @@ module.exports = {
 	
 	async fileRecvDataPerDay(params) {	
 		// Query 
-		var request = new mssql.Request();
-	
-		request.input('fromTime', common.gfn_stringToDate(params.date) + " 00:00:00");
-		request.input('toTime', common.gfn_stringToDate(params.date) + " 23:59:59");
-		var querystring = "select * from cso_filerecv with (nolock, index(idx_filerecv_1))" +
-				" where regdate between @fromTime and @toTime";
-		
+		let request = new mssql.Request();
+		let param = {
+			fromTime : common.gfn_stringToDate(params.date) + " 00:00:00",
+			toTime : common.gfn_stringToDate(params.date) + " 23:59:59"
+		};
+
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'fileRecvDataPerDay', param, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;
@@ -180,15 +184,11 @@ module.exports = {
 		return data;
 	},
 
-	
 	async fileRecvDataByNickName(params) {	
 		// Query 
-		var request = new mssql.Request();
-	
-		request.input('nickname', params.nickname);
-		var querystring = "select * from cso_filerecv with (nolock, index(pk_cso_filerecv))" +
-				" where nickname = @nickname";
+		let request = new mssql.Request();
 		
+		let querystring = mybatisMapper.getStatement('SQLMapper', 'fileRecvDataByNickName', params, format);
 		let data = await request.query(querystring)
 		.then((result) => {
 			return result.recordset;

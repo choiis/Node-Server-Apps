@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SQLMapper">  
+  
+    <select id="selectId">
+        SELECT 
+            *
+            FROM cso_id with (nolock)
+            WHERE userid = #{userid} AND password = #{password}
+    </select>
+
+    <select id="directionCountPerDay">
+        SELECT 
+            COUNT(*) as cnt 
+            FROM cso_direction with (nolock)
+            WHERE logdate between #{fromTime} AND #{toTime}
+    </select>
+
+    <select id="chattingCountPerDay">
+        SELECT 
+            COUNT(*) as cnt 
+            FROM cso_chatting with (nolock)
+            WHERE logdate between #{fromTime} AND #{toTime}
+    </select>
+
+    <select id="chattingStatistics">
+        SELECT 
+            COUNT(*) as cnt,
+             cnt_hour FROM 
+				(   
+                    SELECT DATEPART(hour,logdate) as cnt_hour 
+				    FROM cso_chatting with (nolock) 
+                    WHERE logdate between #{fromTime} AND #{toTime}
+                ) 
+                G GROUP BY G.cnt_hour
+    </select>
+
+    <select id="chattingRanking">
+        SELECT top 10 
+            nickname ,
+            COUNT(*) as chatnum 
+            FROM cso_chatting with (nolock) 
+            WHERE logdate between #{fromTime} AND #{toTime}
+            GROUP BY nickname ORDER BY chatnum DESC
+    </select>
+
+    <select id="chattingTotalRanking">
+        SELECT 
+            nickname ,
+            COUNT(*) as chatnum 
+            FROM cso_chatting with (nolock)
+            GROUP BY nickname 
+            ORDER BY chatnum DESC 
+            offset ${num} rows fetch next 10 rows only
+    </select>
+
+    <select id="calcDaily">
+        exec calc_daily 1
+    </select>
+
+    <select id="uniqueUser">
+        SELECT uniqueuser 
+            FROM daily with (nolock) 
+            WHERE regdate = #{regdate}
+    </select>
+    
+    <select id="fileRecvDataPerDay">
+        SELECT * 
+            FROM cso_filerecv with (nolock, index(idx_filerecv_1))
+            WHERE regdate between #{fromTime} AND #{toTime}
+    </select>
+
+    <select id="fileRecvDataByNickName">
+        SELECT * FROM cso_filerecv with (nolock, index(pk_cso_filerecv))
+            WHERE nickname = #{nickname}
+    </select>
+</mapper>
