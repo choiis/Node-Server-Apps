@@ -6,36 +6,37 @@ var https = require('https'), path = require('path');
 // const router = asyncify(express.Router());
 
 // Express의 미들웨어 불러오기
-var bodyParser = require('body-parser'), cookieParser = require('cookie-parser'), expressSession = require('express-session'), errorHandler = require('errorhandler');
-var fs = require('fs'); // 파일목록 탐색
-var pm2 = require('pm2');
-var dao = require('./dao');
+const bodyParser = require('body-parser'), cookieParser = require('cookie-parser'), expressSession = require('express-session'), errorHandler = require('errorhandler');
+const fs = require('fs'); // 파일목록 탐색
+const pm2 = require('pm2');
+const dao = require('./dao');
 
-var common = require('./common');
-var files = require('./files');
-var smtp = require('./smtp');
-var redis = require('./redis');
-var routers = require('./routers');
+const common = require('./common');
+const files = require('./files');
+const smtp = require('./smtp');
+const redis = require('./redis');
+const logger = require('./logger');
+const routers = require('./routers');
 // 익스프레스 객체 생성
-var app = express();
+const app = express();
 
-var router = express.Router();
+const router = express.Router();
 
-var net = require('net');
-var helmet = require('helmet');
+const net = require('net');
+const helmet = require('helmet');
 
-var HttpStatus = require('http-status-codes');
-var client = new net.Socket();
+const HttpStatus = require('http-status-codes');
+const client = new net.Socket();
 
 // csrf셋팅
-var csrf = require('csurf');
-var csrfProtection = csrf({cookie : true});
+const csrf = require('csurf');
+const csrfProtection = csrf({cookie : true});
 
-var serverSwitch = false;
+const serverSwitch = false;
 
 client.on('close', function() {
 	serverSwitch = false;
-	console.log("server off");
+	logger.info("server off");
 });
 // ===== 뷰 엔진 설정 =====//
 app.set('views', __dirname + '/views');
@@ -94,8 +95,8 @@ app.use((req, res, next) => { // 미들웨어
 });
 
 app.use((err, req, res, next) => { // 에러 처리 부분
-	console.log("err stack");
-	console.error(err.stack); // 에러 메시지 표시
+	logger.error("err stack");
+	logger.error(err.stack); // 에러 메시지 표시
 	res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('INTERNAL_SERVER_ERROR'); // 500 상태 표시 후 에러 메시지 전송
 });
 
@@ -120,19 +121,19 @@ var options = {
 
 process.on('uncaughtException', function(err) {
 	if(err.code === "ETIMEDOUT") {
-		console.error("ETIMEDOUT ", err);
+		logger.error("ETIMEDOUT ", err);
 	} else if (err.code === "ECONNREFUSED") {
-		console.error('ECONNREFUSED ', err);	
+		logger.error('ECONNREFUSED ', err);	
 	} else if (err.code === "EHOSTUNREACH") {
-		console.error('EHOSTUNREACH ', err);	
+		logger.error('EHOSTUNREACH ', err);	
 	} else {
-		console.error('uncaughtException ', err);	
+		logger.error('uncaughtException ', err);	
 	}
 	// smtp.sendMail("예기치 못한 에러" + err);
 });
 
 process.on('unhandledRejection' , (reason , p) => {
-	console.error(reason, 'Unhandled Rejection at Promise', p);
+	logger.error(reason, 'Unhandled Rejection at Promise', p);
 });
 
 // pm2 연결
@@ -146,13 +147,13 @@ var exelocation;
 fs.readFile('conf.properties', 'utf8', (err, data) => {
 	var json = JSON.parse(data);
 	exelocation = json.exelocation;
-	console.log("exelocation : " + exelocation);
-	files.directory = json.directory;
+	logger.info("exelocation : " + exelocation);
+
 	// node js listen port는 설정파일에 있다
 	
 	https.createServer(options ,app ,(req, res) => {
 	}).listen(json.nodeport);
-	console.log('application listening on port ' + json.nodeport + '!');
+	logger.info('application listening on port ' + json.nodeport + '!');
 });
 
 // 메모리 CPU 모니터
@@ -176,7 +177,7 @@ router.put('/serverSwitch', (req, res) => {
 			}, function(err, apps) {
 				// 채팅서버는 같은 PC에서 동작한다
 				// 서버 on 후에 연결한다
-				console.log("server on");
+				logger.info("server on");
 				client.connect(1234, 'localhost');
 				serverSwitch = true;
 
@@ -224,7 +225,7 @@ router.post('/login', async (req, res) => {
 		let data = await dao.selectId(req.body);
 
 		if (data.length > 0) {
-			console.log("login okey");
+			logger.info("login okey");
 			// 세션저장
 			req.session.user = {
 				userid : data[0].userid,
@@ -234,11 +235,11 @@ router.post('/login', async (req, res) => {
 			};
 			res.status(HttpStatus.OK).send(data);
 		} else {
-			console.log("login fail");
+			logger.info("login fail");
 			res.status(HttpStatus.OK).send(data);
 		}
 	} catch (err) {
-		console.log("DB Error " + err);
+		logger.error("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -372,7 +373,7 @@ var request = https.request({
 	path : "/"
 }, function(res) {
 	res.on("error", function(err) {
-		console.log("error " + err);
+		logger.error("error " + err);
 	});
 });
 
