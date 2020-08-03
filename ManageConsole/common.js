@@ -4,10 +4,10 @@
 module.exports = {
 	/** 현재 상세 시간 반환*/
 	gfn_getNowTime() {
-		var d = new Date();
-		var year = d.getFullYear();
-		var month = d.getMonth() + 1;
-		var day = d.getDate();
+		let d = new Date();
+		let year = d.getFullYear();
+		let month = d.getMonth() + 1;
+		let day = d.getDate();
 		
 		if (month < 10) {
 			month = "0" + month;
@@ -15,9 +15,9 @@ module.exports = {
 		if (day < 10) {
 			day = "0" + day;
 		}
-		var hour = d.getHours();
-		var minute = d.getMinutes();
-		var second = d.getSeconds();
+		let hour = d.getHours();
+		let minute = d.getMinutes();
+		let second = d.getSeconds();
 	
 		return year + "-" + month + "-" + day + " " +hour + ":" + minute + ":" + second;
 	},
@@ -30,10 +30,10 @@ module.exports = {
 
 	gfn_getSecondInterval() {
 	
-		var d1 = new Date();
-		var year1 = d1.getFullYear();
-		var month1 = d1.getMonth() + 1;
-		var day1 = d1.getDate();
+		let d1 = new Date();
+		let year1 = d1.getFullYear();
+		let month1 = d1.getMonth() + 1;
+		let day1 = d1.getDate();
 	
 		if (month1 < 10) {
 			month1 = "0" + month1;
@@ -41,16 +41,16 @@ module.exports = {
 		if (day1 < 10) {
 			day1 = "0" + day1;
 		}
-		var hour1 = d1.getHours();
-		var minute1 = d1.getMinutes();
-		var second1 = d1.getSeconds();
+		let hour1 = d1.getHours();
+		let minute1 = d1.getMinutes();
+		let second1 = d1.getSeconds();
 		if (second1 < 10) {
 			second1 = "0" + second1;
 		}
-		var d2 = new Date(d1.getTime() - 1*1000);
-		var year2 = d2.getFullYear();
-		var month2 = d2.getMonth() + 1;
-		var day2 = d2.getDate();
+		let d2 = new Date(d1.getTime() - 1*1000);
+		let year2 = d2.getFullYear();
+		let month2 = d2.getMonth() + 1;
+		let day2 = d2.getDate();
 	
 		if (month2 < 10) {
 			month2 = "0" + month2;
@@ -58,13 +58,13 @@ module.exports = {
 		if (day2 < 10) {
 			day2 = "0" + day2;
 		}
-		var hour2 = d2.getHours();
-		var minute2 = d2.getMinutes();
-		var second2 = d2.getSeconds();
+		let hour2 = d2.getHours();
+		let minute2 = d2.getMinutes();
+		let second2 = d2.getSeconds();
 		if (second2 < 10) {
 			second2 = "0" + second2;
 		}
-		var times = {};
+		let times = {};
 		times.toTime = year1 + "-" + month1 + "-" + day1 + " " +hour1 + ":" + minute1 + ":" + second1;
 		times.fromTime = year2 + "-" + month2 + "-" + day2 + " " +hour2 + ":" + minute2 + ":" + second2;
 		return times;
@@ -92,7 +92,7 @@ module.exports = {
 
 	/** 숫자포맷 체크*/	
  	gfn_isNumber(obj) {
-		var regex= /[0-9]/;
+		let regex= /[0-9]/;
 		return regex.test(obj);
 	},
 
@@ -103,9 +103,9 @@ module.exports = {
 }
 
 // C++ Server가 받아줄 상수
-var CALLCOUNT = 20;
-var BAN = 21;
-var EXIT = 22;
+const CALLCOUNT = 20;
+const BAN = 21;
+const EXIT = 22;
 
 // 상수 정의
 module.exports.CALLCOUNT = CALLCOUNT;
