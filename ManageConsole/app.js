@@ -185,7 +185,11 @@ router.put('/serverSwitch', (req, res) => {
 					flag : 0
 				});
 
-				smtp.sendMail("서버켜짐!");
+				smtp.sendMail("서버켜짐!")
+				.catch(err => {
+					logger.info("mail error");
+					throw err;
+				});
 			});
 		} else {
 			serverSwitch = false;
@@ -209,7 +213,11 @@ router.put('/serverSwitch', (req, res) => {
 				flag : 1
 			});
 
-			smtp.sendMail("서버꺼짐!");
+			smtp.sendMail("서버꺼짐!")
+			.catch(err => {
+				logger.info("mail error");
+				throw err;
+			});
 		}
 	} else {
 		res.status(HttpStatus.UNAUTHORIZED).send({});

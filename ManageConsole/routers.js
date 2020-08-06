@@ -2,15 +2,15 @@
 var express = require('express');
 
 var router = express.Router();
-var dao = require('./dao');
+const dao = require('./dao');
 
-var common = require('./common');
-var smtp = require('./smtp');
-var redis = require('./redis');
-var cron = require('node-cron');
-var pm2 = require('pm2');
+const common = require('./common');
+const smtp = require('./smtp');
+const redis = require('./redis');
+const cron = require('node-cron');
+const pm2 = require('pm2');
 
-var HttpStatus = require('http-status-codes');
+const HttpStatus = require('http-status-codes');
 
 //1초당 지시패킷
 router.get('/directionCountPerDay/:date', async (req, res) => {
@@ -18,7 +18,6 @@ router.get('/directionCountPerDay/:date', async (req, res) => {
 		let data = await dao.directionCountPerDay(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -29,7 +28,6 @@ router.get('/chattingCountPerDay/:date', async (req, res) => {
 		let data = await dao.chattingCountPerDay(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -40,7 +38,6 @@ router.get('/chattingStatistics/:date', async (req, res) => {
 		let data = await dao.chattingStatistics(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -51,7 +48,6 @@ router.get('/chattingRanking/:date', async (req, res) => {
 		let data = await dao.chattingRanking(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -62,7 +58,6 @@ router.get('/chattingTotalRanking/:offset', async (req, res) => {
 		let data = await dao.chattingTotalRanking(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -74,7 +69,6 @@ router.get('/uniqueUser/:date', async (req, res) => {
 		let data = await dao.uniqueUser(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}		
 });
@@ -86,7 +80,6 @@ router.get('/fileRecvDataPerDay/:date', async (req, res) => {
 		let data = await dao.fileRecvDataPerDay(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -98,7 +91,6 @@ router.get('/fileRecvDataByNickName/:nickname', async (req, res) => {
 		let data = await dao.fileRecvDataByNickName(req.params);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("DB Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -111,7 +103,6 @@ router.get('/zrevrange/:key/:cnt', async (req, res) => {
 		let data = await redis.zrevrange(req.params.key, req.params.cnt);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("Redis Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -123,7 +114,6 @@ router.get('/redisGet/:key', async (req, res) => {
 		let data = await redis.get(req.params.key);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("Redis Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -136,7 +126,6 @@ router.get('/hmget/:key/:field', async (req, res) => {
 		let data = await redis.hmget(req.params.key, req.params.field);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("Redis Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -148,7 +137,6 @@ router.get('/hgetall/:key', async (req, res) => {
 		let data = await redis.hgetall(req.params.key);
 		res.status(HttpStatus.OK).send(data);
 	} catch (err) {
-		console.log("Redis Error " + err);
 		res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(err);
 	}
 });
@@ -158,11 +146,9 @@ router.get('/hgetall/:key', async (req, res) => {
 cron.schedule('20 13 * * *', async () => {
 	try {
 		let data = await dao.calcDaily();
-		if(data == 1) {
-			console.log("calcDaily");
-		}
+		
 	} catch (err) {
-		console.log("batch " + err);
+		throw err;
 	}
 }).start();
 

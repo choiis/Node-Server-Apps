@@ -1,16 +1,14 @@
 
-var nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
-var fs = require('fs'); // 파일목록 탐색
+const fs = require('fs'); // 파일목록 탐색
 
-
-var transporter;
-
-var frommail;
-var tomail;
+let transporter;
+let frommail;
+let tomail;
 
 fs.readFile('conf.properties', 'utf8', function(err, data) {
-	var json = JSON.parse(data);
+	let json = JSON.parse(data);
 
 	transporter = nodemailer.createTransport(({
 		host : json.smtphost,
@@ -25,20 +23,27 @@ fs.readFile('conf.properties', 'utf8', function(err, data) {
 	tomail = json.tomail;
 });
 
-var sendMail = function(msg) {
+module.exports = {
 	
-	var mail = {
-		from : frommail,
-		to : tomail,
-		subject : "Warning",
-		text : msg
-	};
-			
-	transporter.sendMail(mail, function(err, result) {
-		if(err) {
-			console.log("mail send err" + err);
-		}
-	});
-};
+	sendMail(msg) {
 
-module.exports.sendMail = sendMail;
+		return new Promise((resolve, reject) => {
+			let mail = {
+				from : frommail,
+				to : tomail,
+				subject : "Warning",
+				text : msg
+			};
+					
+			transporter.sendMail(mail, function(err, result) {
+				if(err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		})
+		
+	}
+
+};
