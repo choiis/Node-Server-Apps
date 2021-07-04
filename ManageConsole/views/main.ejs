@@ -14,7 +14,6 @@
         <section>
             <div id="mainContainer">
                 <div id="wrapper">
-                    {{message}}
                     <div class="animate form">
                         <a href='/logout'>로그아웃</a>
                         <h5>접속자 닉네임 :
@@ -47,8 +46,8 @@
                             <h5>CPU</h5>
                             <h5 id="cpu">{{cpu}}</h5>
                             <h5>강퇴시킬 닉네임</h5>
-                            <input id="banName" name="banName" v-model="banName" type="text " />
-                            <button id="banButton" v-on:click="banUserButton" type="button">강퇴</button> 날짜 선택<input type="text" v-model="vueDatePick" v-on:keyup="vueDatePickKeyup" id="datePick" name="datePick" maxlength="8">
+                            <input id="banName" v-bind:disabled="switchNumber == 1" name="banName" v-model="banName" type="text " />
+                            <button id="banButton" v-bind:disabled="switchNumber == 1" v-on:click="banUserButton" type="button">강퇴</button> 날짜 선택<input type="text" v-model="vueDatePick" v-on:keyup="vueDatePickKeyup" id="datePick" name="datePick" maxlength="8">
                             <button id="datePickButton" v-on:click="datePickButton" type="button">날짜별 조회</button>
 
                             <h5>날짜별 사용자수</h5>
@@ -186,7 +185,6 @@
     <script src="https://unpkg.com/vue/dist/vue.min.js "></script>
     <script type="text/javascript ">
         var model = {
-            message: '첫번째 Vue.js 앱 입니다!',
             switchNumber: 1,
             members: 0,
             chattings: 0,
@@ -303,7 +301,7 @@
                 },
 				callInfo: function() {
 					setInterval(function() {
-						if (model.switchNumber == "0" ) {
+						if (model.switchNumber == 0) {
    							vm.callCount();
    							vm.monitor();
    							Vm.fileList();
@@ -524,18 +522,10 @@
                                 const error = (data && data.message) || response.statusText;
                                 return Promise.reject(error);
                             }
-							debugger;
-                            if (data.length >= 1) {
-                                location.href = '/main';
-                            } else {
-                                alert("아이디와 비밀번호를 확인해 주세요");
-                            }
 
                             if (data.flag === 0) {
                                 this.switchNumber = 0;
                                 this.serverSwitch = "서버끄기";
-                                //$("#banName").prop("disabled", false);
-                                //$("#banButton").prop("disabled", false);
                             } else {
                                 this.serverSwitch = "서버켜기";
                                 this.switchNumber = 1;
@@ -543,8 +533,6 @@
                                 this.chattings = 0;
                                 this.memory = 0;
                                 this.cpu = 0;
-                                //$("#banName").prop("disabled", true);
-                                //$("#banButton").prop("disabled", true);
                             }
                         })
                         .catch((err) => {
