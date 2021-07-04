@@ -1,625 +1,604 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<title>채팅서버 관리콘솔</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
-<style type="text/css">
-<%- myCss.style %>
-</style>
+    <meta charset="utf-8">
+    <title>채팅서버 관리콘솔</title>
 </head>
+
 <body>
-<script type="text/javascript">
-	// 페이지 로딩이 완료되고, jQuery 스크립트 실행된다
-	$(document).ready(function() {
-		
-		$('#datePick').datepicker({
-			dateFormat: 'yymmdd',	
-			numberOfMonths : 1,
-			changeMonth : true,
-			changeYear : true
-		});
-		
-		initDay();
-		
-		initButton();
-		
-		callInfo();
-		
-		//fileList();
-		
-		zrevrange("pl");
-		
-		// 데이트픽커 바뀔시 이벤트 발생
-		$("#datePickButton").on("click", function(e) {
-			datePickTrans($("#datePick").val());
-		});
-		
-		// 데이트픽커 엔터시 이벤트 발생
-		$("#datePick").on("keyup", function(key) {
-			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
-				datePickTrans($(this).val());
-			}
-		});
-		
-		$("#serverSwitch").on("click", function(e) {
-		
-			serverSwitch($("#switchNumber").val());
-		});
-		$("#banName").on("keyup", function(key) {
-			if(key.keyCode == 13) {//키가 13이면 실행 (엔터는 13)
-				banUser();
-			}
-		});
-		$("#banButton").on("click", function(e) {
-			banUser();
-		});			
-		
-		$("#offset").on("change", function(e) {
-			if($(this).val() > 0) {
-				chattingTotalRanking($(this).val());
-			}
-		});					
-	});
-	
-	function datePickTrans(val) {
-	
-		if(!gfn_IsDate(val)) {
-			alert("정확한 날짜를 입력해주세요!");
-			return;
-		}
-				
-		if(!gfn_NotAfterToday(val)) {
-			alert("미래의 날짜는 안됩니다!");
-			return;
-		}
-				
-		chattingStatistics();
-		chattingCountPerDay();
-		directionCountPerDay();
-		chattingRanking();
-		uniqueUser();
-	};
-	
-	function initDay() {
-		var d = new Date();
-		var year = d.getFullYear();
-		var month = d.getMonth() + 1;
-		var day = d.getDate();
-		
-		if(month < 10) {
-			month = "0" + month;
-		}
-		if(day < 10) {
-			day = "0" + day;
-		}
-		
-		$('#datePick').val(year + "" + month + "" + day);
-		
-		chattingStatistics();
-		chattingRanking();
-	};
-	
-	function initButton() {
-	
-		$.ajax({
-		    url : "/initButton",
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-		    	if(data.status === 'online') {
-		    		$("#serverSwitch").text("서버끄기");
-					$("#switchNumber").val("0");
-					$("#banName").prop("disabled", false);
-					$("#banButton").prop("disabled", false);
-		    	} else {
-		    		$("#banName").prop("disabled", true);
-					$("#banButton").prop("disabled", true);
-		    	}
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	// ajax 반복호출
-	function callInfo() {
-		setInterval(function() {
-   			if($("#switchNumber").val() === "0" ) {
-   				callCount();
-   				monitor();
-   				fileList();
-   			}
-   			
-		}, 1000);
-	};
-	
-	function callCount() {
-		$.ajax({
-		    url : "/callCount",
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				$("#members").text(data.cnt);
-				var packetCnt = parseInt(data.packet);
-				if(isNaN(packetCnt)) {
-					$("#chattings").text("0");
-				} else {
-					$("#chattings").text(packetCnt);
-				}
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function chattingCountPerDay() {
-		$.ajax({
-		    url : "/chattingCountPerDay/" + $("#datePick").val(),
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				$("#chattingsPerDay").text(data[0].cnt);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function directionCountPerDay() {
-		$.ajax({
-		    url : "/directionCountPerDay/" + $("#datePick").val(),
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				$("#directionsPerDay").text(data[0].cnt);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function monitor() {
-		$.ajax({
-		    url : "/monitor",
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-		        $("#memory").text((data[0].monit.memory / 1024) + " K");
-				$("#cpu").text(Math.floor(data[0].monit.cpu / 10) + " %");	
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	
-	};
-	
-	// 파일리스트
-	function fileList() {
-		$.ajax({
-		    url : "/file",
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				var html = "";
-			
-				$.each(data, function(index, item) {
-					html += '<tr>';
-	            	html += '<td scope="col" width="50">' + index + '</td>';
-	            	html += '<td scope="col" width="100"><a href="/fileDown/' + item + '">' + item + '</a></td>';
-	            	html += '<td scope="col" width="50"><input type="button" value="삭제" onclick="deleteFile(' + index + ')"></td>';
-	           		html += '</tr>';
-				});
-				$("#viewTbody").empty();
-		        $("#viewTbody").html(html);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	
-	function deleteFile(index) {
-		var fileName = $("#viewTbody").find("tr").eq(index).find("td").eq(1).text();
+    <div class="container">
+        <header>
+            <h1>관리콘솔</h1>
+        </header>
+        <section>
+            <div id="mainContainer">
+                <div id="wrapper">
+                    {{message}}
+                    <div class="animate form">
+                        <a href='/logout'>로그아웃</a>
+                        <h5>접속자 닉네임 :
+                            <%- nickname %>
+                        </h5>
+                        <h5>최근 로그인 날짜 :
+                            <%- lastlogdate %>
+                        </h5>
+                        <h5>최근 로그인 시간 :
+                            <%- lastlogtime %>
+                        </h5>
 
-		$.ajax({
-		    url : "/fileDelete/"+ fileName,
-		    type : "DELETE",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				fileList();
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function chattingStatistics() {
-		$.ajax({
-		    url : "/chattingStatistics/" + $("#datePick").val(),
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				
-				var html = "";
-				$.each(data, function(index, item) {
-					var hour = item.cnt_hour;
-					html += '<tr>';
-	            	html += '<td scope="col" width="100">' + hour +"~" + (hour + 1) + "시" + '</td>';
-	            	html += '<td scope="col" width="200">' + item.cnt + '</a></td>';
-	           		html += '</tr>';
-				});
-				$("#statisticsBody").empty();
-		        $("#statisticsBody").html(html);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function chattingRanking() {
-		$.ajax({
-		    url : "/chattingRanking/"+ $("#datePick").val(),
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				var html = "";
-				$.each(data, function(index, item) {
-					html += '<tr>';
-	            	html += '<td scope="col" width="100">' + (index + 1) + "등" + '</td>';
-	            	html += '<td scope="col" width="200">' + item.nickname + '</td>';
-	            	html += '<td scope="col" width="200">' + item.chatnum + '</a></td>';
-	           		html += '</tr>';
-				});
-				$("#rankingsBody").empty();
-		        $("#rankingsBody").html(html);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function chattingTotalRanking(val) {
+                        <p class="login button">
+                            <button id="serverSwitch" type="button" v-on:click="serverSwitchButton">{{serverSwitch}}</button>
+                            <input id="switchNumber" name="switchNumber" v-model="switchNumber" type="text" style="display:none;" />
+                        </p>
+                        <form id=" chatting_data " class="animate form ">
+                            <h5>접속자 수</h5>
+                            <h5 id="members ">{{members}}명</h5>
+                            <!--
+							<label for="members " class="members " data-icon="u "> 
+							</label> <input id="members " name="members "
+								type="text "/>
+						-->
+                            <h5>1초당 패킷 수</h5>
+                            <h5 id="chattings">{{chattings}}</h5>
 
-		$.ajax({
-		    url : "/chattingTotalRanking/"+ val,
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				var html = "";
-				$.each(data, function(index, item) {
-					html += '<tr>';
-	            	html += '<td scope="col" width="100">' + (10 * (val - 1) + (index + 1)) + "등" + '</td>';
-	            	html += '<td scope="col" width="200">' + item.nickname + '</td>';
-	            	html += '<td scope="col" width="200">' + item.chatnum + '</a></td>';
-	           		html += '</tr>';
-				});
-				$("#totalRankingsBody").empty();
-		        $("#totalRankingsBody").html(html);
-			},
-		    error : function(data, status, error) {
-		    debugger;
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function uniqueUser() {
-	
-		$.ajax({
-		    url : "/uniqueUser/"+ $("#datePick").val(),
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				$("#userCount").text(data[0].uniqueuser);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function zrevrange(key) {
-		
-		$.ajax({
-		    url : "/zrevrange/" + key + "/10",
-		    type : "GET",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				var html = "";
-			
-				$.each(data, function(index, item) {
-					var key = Object.keys(item);
-					html += '<tr>';
-	            	html += '<td scope="col" width="50">' + index + '</td>';
-	            	html += '<td scope="col" width="100">' + key + '</td>';
-	            	html += '<td scope="col" width="50">' + item[key]+ '</td>';
-	           		html += '</tr>';
-				});
-				$("#plTbody").empty();
-		        $("#plTbody").html(html);
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function serverSwitch(switchNumber) {
-		
-		$.ajax({
-		    url : "/serverSwitch",
-		    type : "PUT",
-		    dataType : "json",
-		    cache : false,
-		    data : JSON.stringify({off : switchNumber}),
-		    contentType:"application/json",
-		    success : function(data) {
-				if(data.flag === 0) {
-					$("#serverSwitch").text("서버끄기");
-					$("#switchNumber").val("0");
-					
-					$("#banName").prop("disabled", false);
-					$("#banButton").prop("disabled", false);
-				} else {
-					$("#serverSwitch").text("서버켜기");
-					$("#switchNumber").val("1");
-					
-					$("#directions").text("0");
-					$("#chattings").text("0");
-					$("#members").text("0");
-					$("#memory").text("0 K");
-					$("#cpu").text("0 %");	
-					
-					$("#banName").prop("disabled", true);
-					$("#banButton").prop("disabled", true);
-				}
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	function banUser() {
-		$.ajax({
-		    url : "/ban/"+ $("#banName").val(),
-		    type : "DELETE",
-		    dataType : "json",
-		    cache : false,
-		    success : function(data) {
-				$("#banName").val("");
-				alert("강퇴!");
-			},
-		    error : function(data, status, error) {
-		    	var errorData = JSON.parse(data.responseText);
-		    	alert(errorData.code + " " + errorData.name);
-		    }
-		});
-	};
-	
-	/** 날짜 유효성 체크*/
-	function gfn_IsDate(date) {
-		var nYear = Number(date.substr(0,4));
-	    var nMonth = Number(date.substr(4,2));
-	    var nDay = Number(date.substr(6,2));
-	    if (nYear < 1900 || nYear > 3000) { // 사용가능 하지 않은 년도 체크
-	    	return false;
-	    }
-	    if (nMonth < 1 || nMonth > 12) { // 사용가능 하지 않은 달 체크
-	    	return false;
-	    }
-	    // 해당달의 마지막 일자 구하기
-	    var nMaxDay = new Date(new Date(nYear, nMonth, 1) - 86400000).getDate();
-	    if (nDay < 1 || nDay > nMaxDay) { // 사용가능 하지 않은 날자 체크
-	    	return false;
-	    }
-	    
-	    return true;
-	};
-	
-	/** Date 차이*/
-	function gfn_NotAfterToday(date){
-		if(date.length == 10) {
-			date = date.replace(/[\-./]/gi , "");
-		}
-		
-		var compYear = date.substring(0, 4);
-		var compMonth = date.substring(4, 6) - 1;
-		var compDate = date.substring(6, 8);
-		
-		var toDay = new Date();
-		var compDay = new Date(compYear , compMonth , compDate);
-		
-		var diff = toDay - compDay;
-		
-		if(diff < 0) {
-			return false;
-		} else {
-			return true;
-		}
-	};
-</script>
-	<div class="container">
-		<header>
-			<h1>관리콘솔</h1>
-		</header>
-		<section>
-			<div id="container_demo">
-				<div id="wrapper">
-				<div class="animate form">
-					<a href='/logout'>로그아웃</a>
-					<h5>접속자 닉네임 : <%- nickname %></h5>
-					<h5>최근 로그인 날짜 : <%- lastlogdate %></h5>
-					<h5>최근 로그인 시간 : <%- lastlogtime %></h5>
-					
-					<p class="login button">
-						<button id="serverSwitch" type="button">서버켜기</button>
-						<input id="switchNumber" name="switchNumber"
-							type="text" value="1" style="display:none;/>
-					</p>
-					<form id="chatting_data" class="animate form">
-						<h5>접속자 수</h5>
-						<h5 id="members">명</h5>
-						<!--
-							<label for="members" class="members" data-icon="u"> 
-							</label> <input id="members" name="members"
-								type="text"/>
-						-->	
-						<h5>1초당 패킷 수</h5>
-						<h5 id="chattings"></h5>	
-						
-						<h5>메모리</h5>
-						<h5 id="memory"></h5>
-						<h5>CPU</h5>
-						<h5 id="cpu"></h5>	
-						<h5>강퇴시킬 닉네임</h5>
-						<input id="banName" name="banName"
-								type="text"/>
-						<button id="banButton" type="button">강퇴</button>
-						
-						날짜 선택<input type="text" id="datePick" name="datePick" maxlength="8">
-						<button id="datePickButton" type="button">날짜별 조회</button>
-						
-						<h5>날짜별 사용자수</h5>
-						<h5 id="userCount"></h5>
-						<h5>날짜별 지시패킷</h5>
-						<h5 id="directionsPerDay"></h5>
-						<h5>날짜별  채팅패킷</h5>
-						<h5 id="chattingsPerDay"></h5>	
-					</form>
-						<h5>패킷량 통계</h5>
-						<table border = "1">
-							<colgroup>
-							<col width="100">
-							<col width="200">		
-						</colgroup>
-						<thead>
-						<tr>
-							<th scope="col">시간대</th>
-							<th scope="col">채팅량</th>
-						</tr>
-						</thead>
-						<tbody id="statisticsBody">
-						</tbody>
-						</table>
-						<h5>닉네임별,날짜별 채팅 량 통계</h5>
-						<table border = "1">
-							<colgroup>
-							<col width="100">
-							<col width="200">
-							<col width="200">		
-							</colgroup>
-						<thead>
-						<tr>
-							<th scope="col">랭킹</th>
-							<th scope="col">닉네임</th>
-							<th scope="col">채팅수</th>
-						</tr>
-						</thead>
-						<tbody id="rankingsBody">
-						</tbody>
-						</table>
-				</div>
-				<div id="wrapper">
-				<h5>닉네임별 전체 채팅 량 통계</h5>
-					페이지<input type="number" id="offset" name="offset">
-					<table border = "1">
-						<colgroup>
-						<col width="100">
-						<col width="200">
-						<col width="200">		
-						</colgroup>
-					<thead>
-					<tr>
-						<th scope="col">랭킹</th>
-						<th scope="col">닉네임</th>
-						<th scope="col">채팅수</th>
-					</tr>
-					</thead>
-					<tbody id="totalRankingsBody">
-					</tbody>
-					</table>
-				</div>
-				<div id="wrapper">
-				<h4>서버 파일 목록</h4>
-				<table border = "1">
-				<colgroup>
-					<col width="50">
-					<col width="100">
-					<col width="50">	
-				</colgroup>
-				<thead>
-				<tr>
-					<th scope="col">번호</th>
-					<th scope="col">파일명</th>
-					<th scope="col">삭제</th>
-				</tr>
-				</thead>
-				<tbody id="viewTbody">
-				</tbody>
-				</table>
-				</div>
-				
-				<div id="wrapper">
-				<h4>인기도 리스트</h4>
-				<table border = "1">
-				<colgroup>
-					<col width="50">
-					<col width="100">	
-					<col width="50">	
-				</colgroup>
-				<thead>
-				<tr>
-					<th scope="col">등수</th>
-					<th scope="col">닉네임</th>
-					<th scope="col">좋아요</th>
-				</tr>
-				</thead>
-				<tbody id="plTbody">
-				</tbody>
-				</table>
-				</div>
-				
-				</div>
-				
-			</div>
-		</section>
-	</div>
+                            <h5>메모리</h5>
+                            <h5 id="memory">{{memory}}</h5>
+                            <h5>CPU</h5>
+                            <h5 id="cpu">{{cpu}}</h5>
+                            <h5>강퇴시킬 닉네임</h5>
+                            <input id="banName" name="banName" v-model="banName" type="text " />
+                            <button id="banButton" v-on:click="banUserButton" type="button">강퇴</button> 날짜 선택<input type="text" v-model="vueDatePick" v-on:keyup="vueDatePickKeyup" id="datePick" name="datePick" maxlength="8">
+                            <button id="datePickButton" v-on:click="datePickButton" type="button">날짜별 조회</button>
+
+                            <h5>날짜별 사용자수</h5>
+                            <h5 id="userCount">{{userCount}}</h5>
+                            <h5>날짜별 지시패킷</h5>
+                            <h5 id="directionsPerDay">{{directionsPerDay}}</h5>
+                            <h5>날짜별 채팅패킷</h5>
+                            <h5 id="chattingsPerDay">{{chattingsPerDay}}</h5>
+                        </form>
+                        <h5>패킷량 통계</h5>
+                        <table border="1">
+                            <colgroup>
+                                <col width="100">
+                                <col width="200">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">시간대</th>
+                                    <th scope="col">채팅량</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statisticsBody">
+                                <tr v-for="chats in chattingStatistics">
+                                    <td>{{chats.cnt_hour}} ~ {{chats.cnt_hour + 1}} 시</td>
+                                    <td>{{chats.cnt}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h5>닉네임별,날짜별 채팅 량 통계</h5>
+                        <table border="1">
+                            <colgroup>
+                                <col width="100">
+                                <col width="200">
+                                <col width="200">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">랭킹</th>
+                                    <th scope="col">닉네임</th>
+                                    <th scope="col">채팅수</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rankingsBody">
+                                <tr v-for="(item, index) in chattingRanking">
+                                    <td>{{index + 1}}</td>
+                                    <td>{{item.nickname}}</td>
+                                    <td>{{item.chatnum}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="wrapper">
+                        <h5>닉네임별 전체 채팅 량 통계</h5>
+                        페이지<input type="number" id="offset" name="offset" v-model="offset" v-on:change="chattingTotalRanking">
+                        <table border="1">
+                            <colgroup>
+                                <col width="100">
+                                <col width="200">
+                                <col width="200">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">랭킹</th>
+                                    <th scope="col">닉네임</th>
+                                    <th scope="col">채팅수</th>
+                                </tr>
+                            </thead>
+                            <tbody id="totalRankingsBody">
+                                <tr v-for="(item, index) in chattingTotalRanks">
+                                    <td>{{10 * (offset - 1) + (index + 1)}} 등</td>
+                                    <td>{{item.nickname}}</td>
+                                    <td>{{item.chatnum}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="wrapper">
+                        <h4>서버 파일 목록</h4>
+                        <table border="1">
+                            <colgroup>
+                                <col width="50">
+                                <col width="100">
+                                <col width="50">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">파일명</th>
+                                    <th scope="col">삭제</th>
+                                </tr>
+                            </thead>
+                            <tbody id="viewTbody">
+                                <tr v-for="(item, index) in fileLists">
+                                    <td>{{index}}</td>
+                                    <td><a href="/fileDown/' + item + '">{{item}}</td>
+                                    <td><input type="button" value="삭제" onclick="deleteFile(' + index + ')"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="wrapper">
+                        <h4>인기도 리스트</h4>
+                        <table border="1">
+                            <colgroup>
+                                <col width="50">
+                                <col width="100">
+                                <col width="50">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">등수</th>
+                                    <th scope="col">닉네임</th>
+                                    <th scope="col">좋아요</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plTbody">
+								<tr v-for="(item, index) in plTLists">
+									<td>{{index}}</td>
+									<td>{{item.key}}</td>
+									<td>{{item.value}}</td>
+								</tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js "></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js "></script>
+    <script src="https://unpkg.com/vue/dist/vue.min.js "></script>
+    <script type="text/javascript ">
+        var model = {
+            message: '첫번째 Vue.js 앱 입니다!',
+            switchNumber: 1,
+            members: 0,
+            chattings: 0,
+            memory: 0,
+            cpu: 0,
+            banName: "",
+            vueDatePick: "",
+            userCount: 0,
+            directionsPerDay: 0,
+            chattingsPerDay: 0,
+            chattingStatistics: [],
+            chattingRanking: [],
+            chattingTotalRanks: [],
+            fileLists: [],
+			plTLists:{},
+            offset: 0,
+            serverSwitch: "서버켜기"
+        };
+
+        var vm = new Vue({
+            el: '#mainContainer',
+            data: model,
+            created: function() {
+                var d = new Date();
+                var year = d.getFullYear();
+                var month = d.getMonth() + 1;
+                var day = d.getDate();
+                if (month < 10) {
+                    month = "0" + month;
+                }
+                if (day < 10) {
+                    day = "0" + day;
+                }
+                this.vueDatePick = year + month + day;
+
+				this.callInfo();
+				const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/zrevrange/pl/10", requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+
+                            this.plTLists = data;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+
+            },
+            methods: {
+				gfn_isNull: function(obj) {
+                    if (obj == undefined) {
+                        return true;
+                    } else if (obj == null) {
+                        return true;
+                    } else if (obj === null) {
+                        return true;
+                    } else if (typeof obj == "string") {
+                        if (obj === "") {
+                            return true;
+                        }
+                    } else if (typeof obj == "object") {
+                        if (obj.length == 0) {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                gfn_IsDate: function(date) {
+                    var nYear = Number(date.substr(0, 4));
+                    var nMonth = Number(date.substr(4, 2));
+                    var nDay = Number(date.substr(6, 2));
+                    if (nYear < 1900 || nYear > 3000) { // 사용가능 하지 않은 년도 체크
+                        return false;
+                    }
+                    if (nMonth < 1 || nMonth > 12) { // 사용가능 하지 않은 달 체크
+                        return false;
+                    }
+                    // 해당달의 마지막 일자 구하기
+                    var nMaxDay = new Date(new Date(nYear, nMonth, 1) - 86400000).getDate();
+                    if (nDay < 1 || nDay > nMaxDay) { // 사용가능 하지 않은 날자 체크
+                        return false;
+                    }
+
+                    return true;
+                },
+                gfn_NotAfterToday: function(date) {
+                    if (date.length == 10) {
+                        date = date.replace(/[\-./]/gi, "");
+                    }
+
+                    var compYear = date.substring(0, 4);
+                    var compMonth = date.substring(4, 6) - 1;
+                    var compDate = date.substring(6, 8);
+
+                    var toDay = new Date();
+                    var compDay = new Date(compYear, compMonth, compDate);
+
+                    var diff = toDay - compDay;
+
+                    if (diff < 0) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
+				callInfo: function() {
+					setInterval(function() {
+						if (model.switchNumber == "0" ) {
+   							vm.callCount();
+   							vm.monitor();
+   							Vm.fileList();
+   						}
+   					}, 1000);
+				},
+				callCount:function() {
+					const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/callCount/", requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+							this.members = data.cnt;
+							var packetCnt = parseInt(data.packet);
+							if (isNaN(packetCnt)) {
+								this.chattings = "0";
+							} else {
+								this.chattings = packetCnt;
+							}
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+				},
+				monitor: function() {
+					const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/monitor/", requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+							this.memory = (data[0].monit.memory / 1024) + " K";
+							this.cpu = Math.floor(data[0].monit.cpu / 10) + " %";
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+				},
+				fileList:function() {
+					const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/fileList/", requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+							this.fileLists = data;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+				},
+                chattingCountPerDay: function() {
+                    const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/chattingCountPerDay/" + this.vueDatePick, requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+
+                            this.chattingsPerDay = data[0].cnt;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                directionCountPerDay: function() {
+                    const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/directionCountPerDay/" + this.vueDatePick, requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+
+                            this.directionsPerDay = data[0].cnt;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                uniqueUser: function() {
+                    const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/uniqueUser/" + this.vueDatePick, requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+
+                            this.userCount = data[0].uniqueuser;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                chattingStatisticsFunc: function() {
+                    const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/chattingStatistics/" + this.vueDatePick, requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+                            this.chattingStatistics = data;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                chattingRankingFunc: function() {
+                    const requestOptions = {
+                        method: "GET"
+                    };
+                    fetch("/chattingRanking/" + this.vueDatePick, requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+                            this.chattingRanking = data;
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                banUserButton:function() {
+					this.banUser();
+				},
+				datePickButton: function() {
+                    if (!this.gfn_IsDate(this.vueDatePick)) {
+                        alert("정확한 날짜를 입력해주세요!");
+                        return;
+                    }
+
+                    if (!this.gfn_NotAfterToday(this.vueDatePick)) {
+                        alert("미래의 날짜는 안됩니다!");
+                        return;
+                    }
+                    this.chattingStatisticsFunc();
+                    this.chattingCountPerDay();
+                    this.directionCountPerDay();
+                    this.chattingRankingFunc();
+                    this.uniqueUser();
+                },
+				vueDatePickKeyup: function(e) {
+                    if (e.keyCode === 13) {
+                        this.datePickButton();
+                    }
+                },
+                serverSwitchButton: function() {
+
+                    const requestOptions = {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            off: String(this.switchNumber)
+                        })
+                    };
+                    fetch("/serverSwitch", requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+							debugger;
+                            if (data.length >= 1) {
+                                location.href = '/main';
+                            } else {
+                                alert("아이디와 비밀번호를 확인해 주세요");
+                            }
+
+                            if (data.flag === 0) {
+                                this.switchNumber = 0;
+                                this.serverSwitch = "서버끄기";
+                                //$("#banName").prop("disabled", false);
+                                //$("#banButton").prop("disabled", false);
+                            } else {
+                                this.serverSwitch = "서버켜기";
+                                this.switchNumber = 1;
+                                this.members = 0;
+                                this.chattings = 0;
+                                this.memory = 0;
+                                this.cpu = 0;
+                                //$("#banName").prop("disabled", true);
+                                //$("#banButton").prop("disabled", true);
+                            }
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                banUser: function() {
+
+                    const requestOptions = {
+                        method: "DELETE"
+                    };
+                    fetch("/ban/" + this.banName, requestOptions)
+                        .then(async response => {
+                            const data = await response.json();
+                            // check for error response
+                            if (!response.ok) {
+                                // get error message from body or default to response statusText
+                                const error = (data && data.message) || response.statusText;
+                                return Promise.reject(error);
+                            }
+                            this.banName = "";
+                            alert("강퇴!");
+                        })
+                        .catch((err) => {
+                            var errorData = JSON.parse(data.responseText);
+                            alert(errorData.code + " " + errorData.name);
+                        });
+                },
+                chattingTotalRanking: function() {
+                    if (!this.gfn_isNull(this.offset) && this.offset > 0) {
+                        const requestOptions = {
+                            method: "GET"
+                        };
+                        fetch("/chattingTotalRanking/" + this.offset, requestOptions)
+                            .then(async response => {
+                                const data = await response.json();
+                                // check for error response
+                                if (!response.ok) {
+                                    // get error message from body or default to response statusText
+                                    const error = (data && data.message) || response.statusText;
+                                    return Promise.reject(error);
+                                }
+                                this.chattingTotalRanks = data;
+                            })
+                            .catch((err) => {
+                                var errorData = JSON.parse(data.responseText);
+                                alert(errorData.code + " " + errorData.name);
+                            });
+                    }
+                }
+            }
+        })
+    </script>
 </body>
+
 </html>
