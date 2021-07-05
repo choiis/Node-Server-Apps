@@ -229,16 +229,11 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 
                             this.plTLists = data;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
 
             },
@@ -317,9 +312,8 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 							this.members = data.cnt;
 							var packetCnt = parseInt(data.packet);
@@ -328,10 +322,6 @@
 							} else {
 								this.chattings = packetCnt;
 							}
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
 				},
 				monitor: function() {
@@ -343,16 +333,11 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 							this.memory = (data[0].monit.memory / 1024) + " K";
 							this.cpu = Math.floor(data[0].monit.cpu / 10) + " %";
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
 				},
 				fileList:function() {
@@ -364,15 +349,10 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 							this.fileLists = data;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
 				},
                 chattingCountPerDay: function() {
@@ -384,16 +364,11 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 
                             this.chattingsPerDay = data[0].cnt;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 directionCountPerDay: function() {
@@ -405,16 +380,11 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 
                             this.directionsPerDay = data[0].cnt;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 uniqueUser: function() {
@@ -426,16 +396,11 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 
                             this.userCount = data[0].uniqueuser;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 chattingStatisticsFunc: function() {
@@ -447,15 +412,10 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
                             this.chattingStatistics = data;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 chattingRankingFunc: function() {
@@ -467,15 +427,10 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
                             this.chattingRanking = data;
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 banUserButton:function() {
@@ -516,11 +471,9 @@
                     fetch("/serverSwitch", requestOptions)
                         .then(async response => {
                             const data = await response.json();
-                            // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
 
                             if (data.flag === 0) {
@@ -534,10 +487,6 @@
                                 this.memory = 0;
                                 this.cpu = 0;
                             }
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 banUser: function() {
@@ -550,16 +499,11 @@
                             const data = await response.json();
                             // check for error response
                             if (!response.ok) {
-                                // get error message from body or default to response statusText
-                                const error = (data && data.message) || response.statusText;
-                                return Promise.reject(error);
+                                alert(response.status + " " + response.statusText);
+                                return;
                             }
                             this.banName = "";
                             alert("강퇴!");
-                        })
-                        .catch((err) => {
-                            var errorData = JSON.parse(data.responseText);
-                            alert(errorData.code + " " + errorData.name);
                         });
                 },
                 chattingTotalRanking: function() {
@@ -572,15 +516,10 @@
                                 const data = await response.json();
                                 // check for error response
                                 if (!response.ok) {
-                                    // get error message from body or default to response statusText
-                                    const error = (data && data.message) || response.statusText;
-                                    return Promise.reject(error);
+                                    alert(response.status + " " + response.statusText);
+                                    return;
                                 }
                                 this.chattingTotalRanks = data;
-                            })
-                            .catch((err) => {
-                                var errorData = JSON.parse(data.responseText);
-                                alert(errorData.code + " " + errorData.name);
                             });
                     }
                 }
