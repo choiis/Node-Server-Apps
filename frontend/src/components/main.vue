@@ -8,7 +8,7 @@
             <div id="mainContainer">
                 <div id="wrapper">
                     <div class="animate form">
-                        <a href='/logout'>로그아웃</a>
+                        <button id="logout" type="button" v-on:click="logoutButton">로그아웃</button>
                         <h5>접속자 닉네임 :
                            {{nickname}}
                         </h5>
@@ -316,6 +316,23 @@ export default {
             alert(res.status);
           }
        });
+    },
+    logoutButton:function() {
+
+        var jsonData = {
+           
+        };
+        const vm = this;
+        axios.post('/logout', JSON.stringify(jsonData),
+            { headers: { 'Content-Type': 'application/json' } })
+            .then(function(response) {
+                if (response.status == 200) {
+                  vm.$router.push({name: 'Index'});
+                } else {
+                    alert('아이디와 비밀번호를 확인해 주세요');
+                }
+        });
+
     },
     serverSwitchButton:function() {
       var jsonData = {

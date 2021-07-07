@@ -2,5 +2,6 @@
 /backend/Downloads/
 /backend/log/
 /frontend/node_modules/
+/frontend/dist/
 /.metadata/.plugins/
 /.metadata/

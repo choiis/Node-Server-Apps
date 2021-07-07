@@ -1,6 +1,6 @@
 // Express 기본 모듈 불러오기
 var express = require('express');
-var http = require('http'),
+var https = require('https'),
     path = require('path');
 
 // const asyncify = require('express-asyncify');
@@ -77,7 +77,6 @@ app.use((req, res, next) => { // 미들웨어
 
     if (req.method === 'POST' || req.method === 'PUT') {
         for (key in req.body) {
-            console.log("key " + key + " body " + req.body[key]);
             req.body[key] = common.XSSFilter(req.body[key]);
         }
     }
@@ -143,8 +142,10 @@ fs.readFile('conf.properties', 'utf8', (err, data) => {
 
     // node js listen port는 설정파일에 있다
 
-    http.createServer(options, app, (req, res) => {}).listen(json.nodeport);
-    logger.info('application listening on port ' + json.nodeport + '!');
+    https.createServer(options, app).listen(json.nodeport, () => {
+        logger.info('application listening on port ' + json.nodeport + '!');
+    });
+
 });
 
 // 메모리 CPU 모니터
@@ -244,10 +245,10 @@ router.post('/login', async(req, res) => {
 });
 
 // 로그아웃 router
-router.get('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
 
-    req.session.destroy(function(err) {
-
+    req.session.destroy((err) => {
+		res.status(HttpStatus.OK).send({});
     });
 });
 
@@ -354,7 +355,7 @@ router.get('/callCount', (req, res) => {
     }
 });
 
-var request = http.request({
+var request = https.request({
     path: "/"
 }, function(res) {
     res.on("error", function(err) {
