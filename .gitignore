@@ -1,5 +1,6 @@
-/ManageConsole/node_modules/
-/ManageConsole/Downloads/
-/ManageConsole/log/
+/backend/node_modules/
+/backend/Downloads/
+/backend/log/
+/frontend/node_modules/
 /.metadata/.plugins/
 /.metadata/
