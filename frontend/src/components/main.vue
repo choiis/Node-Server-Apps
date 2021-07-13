@@ -136,7 +136,7 @@
                                 <tr v-for="(item, index) in fileLists" v-bind:key="item">
                                     <td>{{index}}</td>
                                     <td>{{item}}</td>
-                                    <td><input type="button" value="삭제" onclick="deleteFile(' + index + ')"></td>
+                                    <td><input type="button" value="삭제" @click="deleteFile(item)"></td>
                                 </tr>
 
                             </tbody>
@@ -216,7 +216,7 @@ export default {
       }
       this.vueDatePick = year + month + day;
 
-      axios.get('/zrevrange/pl/10').then(res => { 
+      axios.get('/api/zrevrange/pl/10').then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.plTLists = data;
@@ -226,7 +226,8 @@ export default {
        });
 
        
-      axios.get('/session').then(res => { 
+      const vm = this;
+      axios.get('/api/session').then(res => { 
          if (res.status == 200) {
               var data = res.data;
 
@@ -236,7 +237,12 @@ export default {
           } else {
             alert(res.status);
           }
-       });
+       })
+       .catch(error => {
+            if (error.response.status === 401) {
+                vm.$router.push({name: 'Index'});
+            }
+        });
       this.callInfo();
   },
   methods : {
@@ -269,7 +275,7 @@ export default {
         return true;
     },
     callCount: function() {
-       axios.get('/callCount').then(res => { 
+       axios.get('/api/callCount').then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.members = data.cnt;
@@ -285,8 +291,7 @@ export default {
        });
     },
     monitor: function() {
-      console.log("monitor");
-      axios.get('/monitor').then(res => { 
+      axios.get('/api/monitor').then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.memory = (data[0].monit.memory / 1024) + " K";
@@ -304,11 +309,11 @@ export default {
             vm.callCount()
             vm.monitor()
                     }
-            //vm.fileList()
+            vm.fileList()
         }, 1000);
-		},
+	},
     fileList:function() {
-      axios.get('/fileList').then(res => { 
+      axios.get('/api/file').then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.fileLists = data;
@@ -317,13 +322,27 @@ export default {
           }
        });
     },
+    deleteFile: function(item) {
+        axios.delete('/api/fileDelete/' +  item).then(res => { 
+        if (res.status == 200) {
+              this.fileList();
+          } else {
+            alert(res.status);
+          }
+       })
+       .catch(error => {
+            if (error.response.status === 403) {
+                alert("file does not exist");
+            }
+        });
+    },
     logoutButton:function() {
 
         var jsonData = {
            
         };
         const vm = this;
-        axios.post('/logout', JSON.stringify(jsonData),
+        axios.post('/api/logout', JSON.stringify(jsonData),
             { headers: { 'Content-Type': 'application/json' } })
             .then(function(response) {
                 if (response.status == 200) {
@@ -339,7 +358,7 @@ export default {
          off: String(this.switchNumber)
       }
       const vm = this;
-      axios.put('/serverSwitch', JSON.stringify(jsonData),
+      axios.put('/api/serverSwitch', JSON.stringify(jsonData),
         { headers: { 'Content-Type': 'application/json' } })
         .then(function(res) {
             var data = res.data;
@@ -361,7 +380,7 @@ export default {
       });
     },
      banUser: function() {
-       axios.delete('/ban/' +  this.banName).then(res => { 
+       axios.delete('/api/ban/' +  this.banName).then(res => { 
          if (res.status == 200) {
               this.banName = "";
               alert("강퇴!");
@@ -390,7 +409,7 @@ export default {
         }
     },
     chattingTotalRanking:function() {
-      axios.get('/chattingTotalRanking/' + this.offset).then(res => { 
+      axios.get('/api/chattingTotalRanking/' + this.offset).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.chattingTotalRanks = data;
@@ -400,7 +419,7 @@ export default {
        });
     },
     uniqueUser: function() {
-        axios.get('/uniqueUser/' + this.vueDatePick).then(res => { 
+        axios.get('/api/uniqueUser/' + this.vueDatePick).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.userCount = data[0].uniqueuser;
@@ -410,7 +429,7 @@ export default {
        });
     },
     chattingStatisticsFunc: function() {
-        axios.get('/chattingStatistics/' + this.vueDatePick).then(res => { 
+        axios.get('/api/chattingStatistics/' + this.vueDatePick).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.chattingStatistics = data;
@@ -420,7 +439,7 @@ export default {
        });
     },
     chattingCountPerDay: function() {
-        axios.get('/chattingCountPerDay/' + this.vueDatePick).then(res => { 
+        axios.get('/api/chattingCountPerDay/' + this.vueDatePick).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.chattingsPerDay = data[0].cnt;
@@ -430,7 +449,7 @@ export default {
        });
     },
     directionCountPerDay: function() {
-      axios.get('/directionCountPerDay/' + this.vueDatePick).then(res => { 
+      axios.get('/api/directionCountPerDay/' + this.vueDatePick).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.directionsPerDay = data[0].cnt;
@@ -440,7 +459,7 @@ export default {
        });
     },
     chattingRankingFunc: function() {
-      axios.get('/chattingRanking/' + this.vueDatePick).then(res => { 
+      axios.get('/api/chattingRanking/' + this.vueDatePick).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.chattingRanking = data;

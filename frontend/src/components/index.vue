@@ -72,7 +72,7 @@ export default {
         password : this.password,
       }
       const vm = this;
-      axios.post('/login', JSON.stringify(jsonData),
+      axios.post('/api/login', JSON.stringify(jsonData),
         { headers: { 'Content-Type': 'application/json' } })
         .then(function(response) {
           
