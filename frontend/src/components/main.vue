@@ -92,82 +92,19 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="wrapper">
-                        <h5>닉네임별 전체 채팅 량 통계</h5>
-                        페이지<input type="number" id="offset" name="offset" v-model="offset" v-on:change="chattingTotalRanking">
-                        <table border="1">
-                            <colgroup>
-                                <col width="100">
-                                <col width="200">
-                                <col width="200">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th scope="col">랭킹</th>
-                                    <th scope="col">닉네임</th>
-                                    <th scope="col">채팅수</th>
-                                </tr>
-                            </thead>
-                            <tbody id="totalRankingsBody">
-                                <tr v-for="(item, index) in chattingTotalRanks" v-bind:key="item.nickname">
-                                    <td>{{10 * (offset - 1) + (index + 1)}} 등</td>
-                                    <td>{{item.nickname}}</td>
-                                    <td>{{item.chatnum}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    
+                    <div id="subapp">
+                            <li>
+                                <router-link to="/files">서버 파일 목록</router-link>
+                            </li>
+                            <li>
+                                <router-link to="/plTLists">인기도 리스트</router-link>
+                            </li>
+                            <li>
+                                <router-link to="/chattingTotalRanks">닉네임별 전체 채팅</router-link>
+                            </li>
+                        <router-view></router-view>
                     </div>
-                    <div id="wrapper">
-                        <h4>서버 파일 목록</h4>
-                        <table border="1">
-                            <colgroup>
-                                <col width="50">
-                                <col width="100">
-                                <col width="50">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th scope="col">번호</th>
-                                    <th scope="col">파일명</th>
-                                    <th scope="col">삭제</th>
-                                </tr>
-                            </thead>
-                            <tbody id="viewTbody">
-                                <tr v-for="(item, index) in fileLists" v-bind:key="item">
-                                    <td>{{index}}</td>
-                                    <td>{{item}}</td>
-                                    <td><input type="button" value="삭제" @click="deleteFile(item)"></td>
-                                </tr>
-
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="wrapper">
-                        <h4>인기도 리스트</h4>
-                        <table border="1">
-                            <colgroup>
-                                <col width="50">
-                                <col width="100">
-                                <col width="50">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th scope="col">등수</th>
-                                    <th scope="col">닉네임</th>
-                                    <th scope="col">좋아요</th>
-                                </tr>
-                            </thead>
-                            <tbody id="plTbody">
-                                <tr v-for="(item, index) in plTLists" v-bind:key="item">
-									<td>{{index}}</td>
-									<td>{{item.key}}</td>
-									<td>{{item.value}}</td>
-								</tr>
-                            </tbody>
-                        </table>
-                    </div>
-
                 </div>
 
             </div>
@@ -193,10 +130,6 @@ export default {
       chattingsPerDay: 0,
       chattingStatistics: [],
       chattingRanking: [],
-      chattingTotalRanks: [],
-      fileLists: [],
-			plTLists:{},
-      offset: 0,
       serverSwitch: "서버켜기",
       nickname: '',
       lastlogdate: '',
@@ -215,16 +148,6 @@ export default {
           day = "0" + day;
       }
       this.vueDatePick = year + month + day;
-
-      axios.get('/api/zrevrange/pl/10').then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.plTLists = data;
-          } else {
-            alert(res.status);
-          }
-       });
-
        
       const vm = this;
       axios.get('/api/session').then(res => { 
@@ -309,33 +232,8 @@ export default {
             vm.callCount()
             vm.monitor()
                     }
-            vm.fileList()
         }, 1000);
 	},
-    fileList:function() {
-      axios.get('/api/file').then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.fileLists = data;
-          } else {
-            alert(res.status);
-          }
-       });
-    },
-    deleteFile: function(item) {
-        axios.delete('/api/fileDelete/' +  item).then(res => { 
-        if (res.status == 200) {
-              this.fileList();
-          } else {
-            alert(res.status);
-          }
-       })
-       .catch(error => {
-            if (error.response.status === 403) {
-                alert("file does not exist");
-            }
-        });
-    },
     logoutButton:function() {
 
         var jsonData = {
@@ -407,16 +305,6 @@ export default {
         if (e.keyCode === 13) {
             this.datePickButton();
         }
-    },
-    chattingTotalRanking:function() {
-      axios.get('/api/chattingTotalRanking/' + this.offset).then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.chattingTotalRanks = data;
-          } else {
-            alert(res.status);
-          }
-       });
     },
     uniqueUser: function() {
         axios.get('/api/uniqueUser/' + this.vueDatePick).then(res => { 
