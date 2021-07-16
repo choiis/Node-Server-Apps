@@ -76,8 +76,8 @@ export default {
         });
     }
   },
-  props: {
-    msg: String
+  props :{
+    switchNumber : Number
   }
 }
 </script>

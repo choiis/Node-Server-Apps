@@ -6,7 +6,9 @@ import plTLists from '@/components/plTLists'
 import files from '@/components/files'
 import notfound from '@/components/404'
 import chattingTotalRanks from '@/components/chattingTotalRanks'
+import LoginInfo from '@/components/logininfo'
 Vue.use(Router)
+Vue.component('local-component', LoginInfo)
 
 export const router = new Router({
     mode: 'history',

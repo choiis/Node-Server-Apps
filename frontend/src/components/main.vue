@@ -9,21 +9,14 @@
                 <div id="wrapper">
                     <div class="animate form">
                         <button id="logout" type="button" v-on:click="logoutButton">로그아웃</button>
-                        <h5>접속자 닉네임 :
-                           {{nickname}}
-                        </h5>
-                        <h5>최근 로그인 날짜 :
-                            {{lastlogdate}}
-                        </h5>
-                        <h5>최근 로그인 시간 :
-                            {{lastlogtime}}
-                        </h5>
-
+                        <local-component></local-component>
+                        
                         <p class="login button">
                             <button id="serverSwitch" type="button" v-on:click="serverSwitchButton">{{serverSwitch}}</button>
                             <input id="switchNumber" name="switchNumber" v-model="switchNumber" type="text" style="display:none;" />
                         </p>
                         <form id=" chatting_data " class="animate form ">
+                            
                             <h5>접속자 수</h5>
                             <h5 id="members ">{{members}}명</h5>
                             <!--
@@ -114,6 +107,7 @@
 
 <script>
   import axios from 'axios';
+  import LoginInfo from './logininfo';
 export default {
   name: 'Index',
   data () {
@@ -130,12 +124,10 @@ export default {
       chattingsPerDay: 0,
       chattingStatistics: [],
       chattingRanking: [],
-      serverSwitch: "서버켜기",
-      nickname: '',
-      lastlogdate: '',
-      lastlogtime: ''
+      serverSwitch: "서버켜기"
     }
   },
+  components: function() {LoginInfo},
   created: function(){
       var d = new Date();
       var year = d.getFullYear();
@@ -150,17 +142,7 @@ export default {
       this.vueDatePick = year + month + day;
        
       const vm = this;
-      axios.get('/api/session').then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-
-              this.nickname = data.nickname;
-              this.lastlogdate = data.lastlogdate;
-              this.lastlogtime = data.lastlogtime;
-          } else {
-            alert(res.status);
-          }
-       })
+      axios.get('/api/session')
        .catch(error => {
             if (error.response.status === 401) {
                 vm.$router.push({name: 'Index'});
@@ -356,9 +338,6 @@ export default {
           }
        });
     }
-  },
-  props: {
-    msg: String
   }
 }
 </script>
