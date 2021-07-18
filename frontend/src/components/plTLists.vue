@@ -37,7 +37,7 @@
 <script>
   import axios from 'axios';
 export default {
-  name: 'Index',
+  name: 'PltLists',
   data () {
     return {
 	plTLists:{}
@@ -63,9 +63,6 @@ export default {
 
     },
   methods : {
-  },
-  props: {
-    msg: String
   }
 }
 </script>

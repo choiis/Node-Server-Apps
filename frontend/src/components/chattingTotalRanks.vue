@@ -36,7 +36,7 @@
 <script>
   import axios from 'axios';
 export default {
-  name: 'Index',
+  name: 'ChattingTotalRanks',
   data () {
     return {
     chattingTotalRanks:{},
@@ -64,9 +64,6 @@ export default {
           }
        });
     }
-  },
-  props: {
-    msg: String
   }
 }
 </script>

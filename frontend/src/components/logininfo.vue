@@ -2,14 +2,15 @@
             <div id="container_demo">
                 <div id="wrapper">
                     <div id="compoDiv">
+                      로그인 정보
                       <h5>접속자 닉네임 :
-                           {{nickname}}
+                           {{$props.sessionname}}
                         </h5>
                         <h5>최근 로그인 날짜 :
-                            {{lastlogdate}}
+                            {{$props.sessionlastlogdate}}
                         </h5>
                         <h5>최근 로그인 시간 :
-                            {{lastlogtime}}
+                            {{$props.sessionlastlogtime}}
                         </h5>
                     </div>
                 </div>
@@ -17,28 +18,18 @@
 </template>
 
 <script>
-  import axios from 'axios';
+  //import axios from 'axios';
 export default {
   name: 'local-component',
+  props: ['sessionname','sessionlastlogdate','sessionlastlogtime'],
   data () {
     return {
-      nickname: '',
-      lastlogdate: '',
-      lastlogtime:''
     }
   },
-   created: function(){
-      axios.get('/api/session').then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-
-              this.nickname = data.nickname;
-              this.lastlogdate = data.lastlogdate;
-              this.lastlogtime = data.lastlogtime;
-          } else {
-            alert(res.status);
-          }
-       });
+  created: function(){
+      
+  },
+  mounted () {
   },
   methods : {
     

@@ -9,21 +9,15 @@
                 <div id="wrapper">
                     <div class="animate form">
                         <button id="logout" type="button" v-on:click="logoutButton">로그아웃</button>
-                        <local-component></local-component>
-                        
+                        <local-component v-bind:sessionname="nicknames" v-bind:sessionlastlogdate="lastlogdate" v-bind:sessionlastlogtime="lastlogtime" ></local-component>
                         <p class="login button">
                             <button id="serverSwitch" type="button" v-on:click="serverSwitchButton">{{serverSwitch}}</button>
                             <input id="switchNumber" name="switchNumber" v-model="switchNumber" type="text" style="display:none;" />
                         </p>
                         <form id=" chatting_data " class="animate form ">
-                            
+                            <div v-show="switchNumber == 0">
                             <h5>접속자 수</h5>
                             <h5 id="members ">{{members}}명</h5>
-                            <!--
-							<label for="members " class="members " data-icon="u "> 
-							</label> <input id="members " name="members "
-								type="text "/>
-						-->
                             <h5>1초당 패킷 수</h5>
                             <h5 id="chattings">{{chattings}}</h5>
 
@@ -31,6 +25,7 @@
                             <h5 id="memory">{{memory}}</h5>
                             <h5>CPU</h5>
                             <h5 id="cpu">{{cpu}}</h5>
+                            </div>
                             <h5>강퇴시킬 닉네임</h5>
                             <input id="banName" v-bind:disabled="switchNumber == 1" name="banName" v-model="banName" type="text " />
                             <button id="banButton" v-bind:disabled="switchNumber == 1" v-on:click="banUserButton" type="button">강퇴</button> 날짜 선택<input type="text" v-model="vueDatePick" v-on:keyup="vueDatePickKeyup" id="datePick" name="datePick" maxlength="8">
@@ -124,7 +119,10 @@ export default {
       chattingsPerDay: 0,
       chattingStatistics: [],
       chattingRanking: [],
-      serverSwitch: "서버켜기"
+      serverSwitch: "서버켜기",
+      nicknames: "",
+      lastlogdate: "",
+      lastlogtime: "",
     }
   },
   components: function() {LoginInfo},
@@ -149,6 +147,18 @@ export default {
             }
         });
       this.callInfo();
+      axios.get('/api/session').then(res => { 
+         if (res.status == 200) {
+              var data = res.data;
+
+              this.nicknames = data.nickname;
+              this.lastlogdate = data.lastlogdate;
+              this.lastlogtime = data.lastlogtime;
+          } else {
+            alert(res.status);
+          }
+       });
+      
   },
   methods : {
     gfn_isNull: function(obj) {
@@ -197,32 +207,28 @@ export default {
     },
     monitor: function() {
       axios.get('/api/monitor').then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.memory = (data[0].monit.memory / 1024) + " K";
-							this.cpu = Math.floor(data[0].monit.cpu / 10) + " %";
-          } else {
+        if (res.status == 200) {
+            var data = res.data;
+            this.memory = (data[0].monit.memory / 1024) + " K";
+			this.cpu = Math.floor(data[0].monit.cpu / 10) + " %";
+        } else {
             alert(res.status);
-          }
-       });
+        }
+      });
     },
     callInfo: function() {
-        const vm = this;
-				setInterval(function() {
-                    if(vm.switchNumber == 0) {
-
-            vm.callCount()
-            vm.monitor()
-                    }
+        const vm = this;		
+        setInterval(function() {
+            if(vm.switchNumber == 0) {
+                vm.callCount()
+                vm.monitor()
+            }
         }, 1000);
 	},
     logoutButton:function() {
 
-        var jsonData = {
-           
-        };
         const vm = this;
-        axios.post('/api/logout', JSON.stringify(jsonData),
+        axios.post('/api/logout', JSON.stringify({}),
             { headers: { 'Content-Type': 'application/json' } })
             .then(function(response) {
                 if (response.status == 200) {

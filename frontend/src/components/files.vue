@@ -4,7 +4,7 @@
             <div id="fileContainer">
                 
                 <div id="wrapper">
-                    <h4>서버 파일 목록</h4>
+                    <h4>{{infotext}}</h4>
                        <table border="1">
                             <colgroup>
                                 <col width="50">
@@ -35,11 +35,13 @@
 <script>
   import axios from 'axios';
 export default {
-  name: 'Index',
+  name: 'File',
+  props: ['fileinfotext'],
   data () {
     return {
-      fileLists: []
-    }
+      fileLists: [],
+      infotext : this.fileinfotext
+      }
   },
   created: function() {
 
@@ -75,9 +77,6 @@ export default {
             }
         });
     }
-  },
-  props :{
-    switchNumber : Number
   }
 }
 </script>
