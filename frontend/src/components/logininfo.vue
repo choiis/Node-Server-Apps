@@ -20,7 +20,7 @@
 <script>
   //import axios from 'axios';
 export default {
-  name: 'local-component',
+  name: 'login-component',
   props: ['sessionname','sessionlastlogdate','sessionlastlogtime'],
   data () {
     return {

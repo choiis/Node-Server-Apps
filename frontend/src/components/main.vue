@@ -9,7 +9,7 @@
                 <div id="wrapper">
                     <div class="animate form">
                         <button id="logout" type="button" v-on:click="logoutButton">로그아웃</button>
-                        <local-component v-bind:sessionname="nicknames" v-bind:sessionlastlogdate="lastlogdate" v-bind:sessionlastlogtime="lastlogtime" ></local-component>
+                        <login-component v-bind:sessionname="nicknames" v-bind:sessionlastlogdate="lastlogdate" v-bind:sessionlastlogtime="lastlogtime" ></login-component>
                         <p class="login button">
                             <button id="serverSwitch" type="button" v-on:click="serverSwitchButton">{{serverSwitch}}</button>
                             <input id="switchNumber" name="switchNumber" v-model="switchNumber" type="text" style="display:none;" />
@@ -30,55 +30,10 @@
                             <input id="banName" v-bind:disabled="switchNumber == 1" name="banName" v-model="banName" type="text " />
                             <button id="banButton" v-bind:disabled="switchNumber == 1" v-on:click="banUserButton" type="button">강퇴</button> 날짜 선택<input type="text" v-model="vueDatePick" v-on:keyup="vueDatePickKeyup" id="datePick" name="datePick" maxlength="8">
                             <button id="datePickButton" v-on:click="datePickButton" type="button">날짜별 조회</button>
-
-                            <h5>날짜별 사용자수</h5>
-                            <h5 id="userCount">{{userCount}}</h5>
-                            <h5>날짜별 지시패킷</h5>
-                            <h5 id="directionsPerDay">{{directionsPerDay}}</h5>
-                            <h5>날짜별 채팅패킷</h5>
-                            <h5 id="chattingsPerDay">{{chattingsPerDay}}</h5>
                         </form>
-                        <h5>패킷량 통계</h5>
-                        <table border="1">
-                            <colgroup>
-                                <col width="100">
-                                <col width="200">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th scope="col">시간대</th>
-                                    <th scope="col">채팅량</th>
-                                </tr>
-                            </thead>
-                            <tbody id="statisticsBody">
-                                <tr v-for="chats in chattingStatistics" v-bind:key="chats.cnt_hour">
-                                    <td>{{chats.cnt_hour}} ~ {{chats.cnt_hour + 1}} 시</td>
-                                    <td>{{chats.cnt}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <h5>닉네임별,날짜별 채팅 량 통계</h5>
-                        <table border="1">
-                            <colgroup>
-                                <col width="100">
-                                <col width="200">
-                                <col width="200">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th scope="col">랭킹</th>
-                                    <th scope="col">닉네임</th>
-                                    <th scope="col">채팅수</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rankingsBody">
-                                <tr v-for="(item, index) in chattingRanking" v-bind:key="item.nickname">
-                                    <td>{{index + 1}}</td>
-                                    <td>{{item.nickname}}</td>
-                                    <td>{{item.chatnum}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <daily-component ref="daily" v-bind:vueDatePick="vueDatePick"
+                         v-bind:chattingStatistics="chattingStatistics" v-bind:chattingRanking="chattingRanking" ></daily-component>
+                        
                     </div>
                     
                     <div id="subapp">
@@ -103,6 +58,7 @@
 <script>
   import axios from 'axios';
   import LoginInfo from './logininfo';
+  import DailyInfo from './dailyinfo';
 export default {
   name: 'Index',
   data () {
@@ -116,7 +72,6 @@ export default {
       vueDatePick: "",
       userCount: 0,
       directionsPerDay: 0,
-      chattingsPerDay: 0,
       chattingStatistics: [],
       chattingRanking: [],
       serverSwitch: "서버켜기",
@@ -125,7 +80,7 @@ export default {
       lastlogtime: "",
     }
   },
-  components: function() {LoginInfo},
+  components: function() {LoginInfo, DailyInfo},
   created: function(){
       var d = new Date();
       var year = d.getFullYear();
@@ -283,52 +238,20 @@ export default {
             alert("정확한 날짜를 입력해주세요!");
             return;
         }
+        this.$refs.daily.childMethod();
         this.chattingStatisticsFunc();
-        this.chattingCountPerDay();
-        this.directionCountPerDay();
         this.chattingRankingFunc();
-        this.uniqueUser();
     },
     vueDatePickKeyup: function(e) {
         if (e.keyCode === 13) {
             this.datePickButton();
         }
     },
-    uniqueUser: function() {
-        axios.get('/api/uniqueUser/' + this.vueDatePick).then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.userCount = data[0].uniqueuser;
-          } else {
-            alert(res.status);
-          }
-       });
-    },
     chattingStatisticsFunc: function() {
         axios.get('/api/chattingStatistics/' + this.vueDatePick).then(res => { 
          if (res.status == 200) {
               var data = res.data;
               this.chattingStatistics = data;
-          } else {
-            alert(res.status);
-          }
-       });
-    },
-    chattingCountPerDay: function() {
-        axios.get('/api/chattingCountPerDay/' + this.vueDatePick).then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.chattingsPerDay = data[0].cnt;
-          } else {
-            alert(res.status);
-          }
-       });
-    },
-    directionCountPerDay: function() {
-      axios.get('/api/directionCountPerDay/' + this.vueDatePick).then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.directionsPerDay = data[0].cnt;
           } else {
             alert(res.status);
           }

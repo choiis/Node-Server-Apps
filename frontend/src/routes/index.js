@@ -7,8 +7,10 @@ import files from '@/components/files'
 import notfound from '@/components/404'
 import chattingTotalRanks from '@/components/chattingTotalRanks'
 import LoginInfo from '@/components/logininfo'
+import DailyInfo from '@/components/dailyinfo'
 Vue.use(Router)
-Vue.component('local-component', LoginInfo)
+Vue.component('login-component', LoginInfo)
+Vue.component('daily-component', DailyInfo)
 
 export const router = new Router({
     mode: 'history',
