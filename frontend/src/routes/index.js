@@ -8,9 +8,23 @@ import notfound from '@/components/404'
 import chattingTotalRanks from '@/components/chattingTotalRanks'
 import LoginInfo from '@/components/logininfo'
 import DailyInfo from '@/components/dailyinfo'
-Vue.use(Router)
-Vue.component('login-component', LoginInfo)
-Vue.component('daily-component', DailyInfo)
+Vue.use(Router);
+Vue.component('login-component', LoginInfo);
+Vue.component('daily-component', DailyInfo);
+
+import axios from 'axios';
+
+function authCheck(to, from, next) {
+    console.log("before each to : " + to.path + " from : " + from.path);
+    axios.get('/api/session')
+        .then(() => {
+            next();
+        })
+        .catch(() => {
+            next({ name: 'Index' });
+        });
+
+}
 
 export const router = new Router({
     mode: 'history',
@@ -23,32 +37,27 @@ export const router = new Router({
             path: '/main',
             name: 'Main',
             component: Main,
-            beforeEnter: (to, from, next) => {
-                console.log("main from : " + from.path + " to : " + to.path);
-                next();
-            },
+            beforeEnter: authCheck,
             children: [{
                     path: '/plTLists',
                     name: 'plTLists',
-                    component: plTLists
+                    component: plTLists,
+                    beforeEnter: authCheck
                 },
                 {
                     path: '/files',
                     name: 'files',
-                    component: files
+                    component: files,
+                    beforeEnter: authCheck
                 },
                 {
                     path: '/chattingTotalRanks',
                     name: 'chattingTotalRanks',
-                    component: chattingTotalRanks
+                    component: chattingTotalRanks,
+                    beforeEnter: authCheck
                 }
             ]
         },
         { path: '*', component: notfound }
     ]
-});
-
-router.beforeEach((to, from, next) => {
-    console.log("before each to : " + to.path + " from : " + from.path);
-    next();
 });

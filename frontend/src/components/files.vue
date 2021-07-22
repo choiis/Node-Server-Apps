@@ -45,14 +45,6 @@ export default {
   },
   created: function() {
 
-      const vm = this;
-      axios.get('/api/session')
-      .catch(error => {
-        if (error.response.status === 401) {
-            vm.$router.push({name: 'Index'});
-        }
-       });
-
        axios.get('/api/file').then(res => { 
          if (res.status == 200) {
               var data = res.data;

@@ -24,7 +24,7 @@
                                 </tr>
                             </thead>
                             <tbody id="statisticsBody">
-                                <tr v-for="chats in $props.chattingStatistics" v-bind:key="chats.cnt_hour">
+                                <tr v-for="chats in chattingStatistics" v-bind:key="chats.cnt_hour">
                                     <td>{{chats.cnt_hour}} ~ {{chats.cnt_hour + 1}} 시</td>
                                     <td>{{chats.cnt}}</td>
                                 </tr>
@@ -46,7 +46,7 @@
                                 </tr>
                             </thead>
                             <tbody id="rankingsBody">
-                                <tr v-for="(item, index) in $props.chattingRanking" v-bind:key="item.nickname">
+                                <tr v-for="(item, index) in chattingRanking" v-bind:key="item.nickname">
                                     <td>{{index + 1}}</td>
                                     <td>{{item.nickname}}</td>
                                     <td>{{item.chatnum}}</td>
@@ -60,12 +60,14 @@
 import axios from 'axios';
 export default {
   name: 'daily-component',
-  props: ['vueDatePick','chattingStatistics','chattingRanking'],
+  props: ['vueDatePick'],
   data () {
     return {
       chattingsPerDay: 0,
       directionsPerDay: 0,
-      userCount:0
+      userCount:0,
+      chattingStatistics:[],
+      chattingRanking:[]
     }
   },
   created: function(){
@@ -78,6 +80,8 @@ export default {
       this.chattingCountPerDay();
       this.directionCountPerDay();
       this.uniqueUser();
+      this.chattingStatisticsFunc();
+      this.chattingRankingFunc();
     },
     uniqueUser: function() {
         axios.get('/api/uniqueUser/' + this.$props.vueDatePick).then(res => { 
@@ -104,6 +108,26 @@ export default {
          if (res.status == 200) {
               var data = res.data;
               this.directionsPerDay = data[0].cnt;
+          } else {
+            alert(res.status);
+          }
+       });
+    },
+    chattingStatisticsFunc: function() {
+        axios.get('/api/chattingStatistics/' + this.$props.vueDatePick).then(res => { 
+         if (res.status == 200) {
+              var data = res.data;
+              this.chattingStatistics = data;
+          } else {
+            alert(res.status);
+          }
+       });
+    },
+    chattingRankingFunc: function() {
+      axios.get('/api/chattingRanking/' + this.$props.vueDatePick).then(res => { 
+         if (res.status == 200) {
+              var data = res.data;
+              this.chattingRanking = data;
           } else {
             alert(res.status);
           }

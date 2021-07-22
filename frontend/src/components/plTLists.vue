@@ -44,13 +44,7 @@ export default {
     }
   },
   created: function(){
-    const vm = this;
-      axios.get('/api/session')
-      .catch(error => {
-        if (error.response.status === 401) {
-            vm.$router.push({name: 'Index'});
-        }
-       });
+    
        
       axios.get('/api/zrevrange/pl/10').then(res => { 
          if (res.status == 200) {

@@ -31,8 +31,7 @@
                             <button id="banButton" v-bind:disabled="switchNumber == 1" v-on:click="banUserButton" type="button">강퇴</button> 날짜 선택<input type="text" v-model="vueDatePick" v-on:keyup="vueDatePickKeyup" id="datePick" name="datePick" maxlength="8">
                             <button id="datePickButton" v-on:click="datePickButton" type="button">날짜별 조회</button>
                         </form>
-                        <daily-component ref="daily" v-bind:vueDatePick="vueDatePick"
-                         v-bind:chattingStatistics="chattingStatistics" v-bind:chattingRanking="chattingRanking" ></daily-component>
+                        <daily-component ref="daily" v-bind:vueDatePick="vueDatePick"></daily-component>
                         
                     </div>
                     
@@ -72,8 +71,6 @@ export default {
       vueDatePick: "",
       userCount: 0,
       directionsPerDay: 0,
-      chattingStatistics: [],
-      chattingRanking: [],
       serverSwitch: "서버켜기",
       nicknames: "",
       lastlogdate: "",
@@ -93,14 +90,6 @@ export default {
           day = "0" + day;
       }
       this.vueDatePick = year + month + day;
-       
-      const vm = this;
-      axios.get('/api/session')
-       .catch(error => {
-            if (error.response.status === 401) {
-                vm.$router.push({name: 'Index'});
-            }
-        });
       this.callInfo();
       axios.get('/api/session').then(res => { 
          if (res.status == 200) {
@@ -185,12 +174,8 @@ export default {
         const vm = this;
         axios.post('/api/logout', JSON.stringify({}),
             { headers: { 'Content-Type': 'application/json' } })
-            .then(function(response) {
-                if (response.status == 200) {
-                  vm.$router.push({name: 'Index'});
-                } else {
-                    alert('아이디와 비밀번호를 확인해 주세요');
-                }
+            .then(() => {
+               vm.$router.push({name: 'Index'});
         });
 
     },
@@ -239,33 +224,11 @@ export default {
             return;
         }
         this.$refs.daily.childMethod();
-        this.chattingStatisticsFunc();
-        this.chattingRankingFunc();
     },
     vueDatePickKeyup: function(e) {
         if (e.keyCode === 13) {
             this.datePickButton();
         }
-    },
-    chattingStatisticsFunc: function() {
-        axios.get('/api/chattingStatistics/' + this.vueDatePick).then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.chattingStatistics = data;
-          } else {
-            alert(res.status);
-          }
-       });
-    },
-    chattingRankingFunc: function() {
-      axios.get('/api/chattingRanking/' + this.vueDatePick).then(res => { 
-         if (res.status == 200) {
-              var data = res.data;
-              this.chattingRanking = data;
-          } else {
-            alert(res.status);
-          }
-       });
     }
   }
 }

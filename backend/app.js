@@ -102,11 +102,11 @@ app.all('*', (req, res) => {
 });
 
 
-var process = require('process');
+let process = require('process');
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
-var options = {
+const options = {
     key: fs.readFileSync('keys/key.pem'),
     cert: fs.readFileSync('keys/cert.pem')
 };
@@ -132,11 +132,11 @@ process.on('unhandledRejection', (reason, p) => {
 pm2.connect(function(err) {});
 
 //서버 파일 디렉토리
-var exelocation;
+let exelocation;
 
 // 설정파일 읽어들이기
 fs.readFile('conf.properties', 'utf8', (err, data) => {
-    var json = JSON.parse(data);
+    const json = JSON.parse(data);
     exelocation = json.exelocation;
     logger.info("exelocation : " + exelocation);
 
@@ -193,7 +193,7 @@ router.put('/serverSwitch', (req, res) => {
         pm2.stop("Server.exe", function(err) {
 
         });
-        var packet = Buffer.alloc(20);
+        let packet = Buffer.alloc(20);
         // 0 2번째 short 바디사이즈
         packet[0] = 20;
         // 6 10번째 direction
@@ -257,7 +257,7 @@ router.get('/session', (req, res) => {
     if (req.session.user) { // 세선정보 있음
 
         if (req.session.user.adminyn === 1) {
-            var json = {
+            const json = {
                 nickname: req.session.user.nickname,
                 lastlogdate: req.session.user.lastlogdate.substr(0, 10),
                 lastlogtime: req.session.user.lastlogdate.substr(11, 8)
@@ -275,12 +275,12 @@ router.get('/session', (req, res) => {
 router.get('/initButton', (req, res) => {
     pm2.describe("Server.exe", function(err, des) {
         if (!common.gfn_isNull(des[0])) {
-            var json = {
+            const json = {
                 "status": des[0].pm2_env.status
             };
             res.status(HttpStatus.OK).send(json);
         } else {
-            var json2 = {
+            const json2 = {
                 "status": "none"
             };
             res.status(HttpStatus.OK).send(json2);
@@ -291,26 +291,27 @@ router.get('/initButton', (req, res) => {
 
 // 멤버 강퇴
 router.delete('/ban/:banName', (req, res) => {
-    //if (req.session.user) { // 세선정보 있음
-    var banName = Buffer.from(req.params.banName);
-    // Chatting Server의 Packet유형으로 전달한다
-    var packet = Buffer.alloc(banName.length + 10);
-    // 0 2번째 short 바디사이즈
-    packet[0] = banName.length + 10;
-    // 2 6번째 status = > 이름길이
-    packet[2] = banName.length;
-    // 6 10번째 direction
-    packet[6] = common.BAN; // direction
-    for (var i = 0; i < banName.length; i++) {
-        packet[i + 10] = banName[i]; // msg
+    if (req.session.user) { // 세선정보 있음
+        let banName = Buffer.from(req.params.banName);
+        // Chatting Server의 Packet유형으로 전달한다
+        let packet = Buffer.alloc(banName.length + 10);
+        // 0 2번째 short 바디사이즈
+        packet[0] = banName.length + 10;
+        // 2 6번째 status = > 이름길이
+        packet[2] = banName.length;
+        // 6 10번째 direction
+        packet[6] = common.BAN; // direction
+        for (var i = 0; i < banName.length; i++) {
+            packet[i + 10] = banName[i]; // msg
+        }
+
+        client.write(packet, function() {
+            const data = {};
+            res.status(HttpStatus.OK).send(data);
+        });
+    } else {
+        res.status(HttpStatus.UNAUTHORIZED).send({});
     }
-    client.write(packet, function() {
-        var data = {};
-        res.status(HttpStatus.OK).send(data);
-    });
-    //} else {
-    //    res.status(HttpStatus.UNAUTHORIZED).send({});
-    //}
 });
 
 
@@ -319,7 +320,7 @@ router.get('/callCount', (req, res) => {
     if (req.session.user) { // 세선정보 있음
         if (serverSwitch) { // 서버 켜진 상태
 
-            var packet = Buffer.alloc(20);
+            let packet = Buffer.alloc(20);
             // 0 2번째 short 바디사이즈
             packet[0] = 20;
             // 6 10번째 direction
@@ -329,14 +330,14 @@ router.get('/callCount', (req, res) => {
 
             client.on('data', function(data) {
                 // data라는 event를 임시 add 해줬으므로 다쓰고 없앤다
-                var bodySize = data.slice(0, 2).readUInt8();
-                var packetCnt = data.slice(10, bodySize - 1);
+                let bodySize = data.slice(0, 2).readUInt8();
+                let packetCnt = data.slice(10, bodySize - 1);
 
                 try {
-                    var json1 = JSON.parse(packetCnt.toString('utf-8'));
+                    const json1 = JSON.parse(packetCnt.toString('utf-8'));
                     res.status(HttpStatus.OK).send(json1);
                 } catch (err) {
-                    var json2 = {
+                    const json2 = {
                         "packet": 0,
                         "cnt": 0
                     };
@@ -346,7 +347,7 @@ router.get('/callCount', (req, res) => {
             });
             // recv
         } else { // 서버 꺼진 상태
-            var arr = {
+            const arr = {
                 'cnt': 0,
                 'packet': "0"
             };
@@ -355,7 +356,7 @@ router.get('/callCount', (req, res) => {
     }
 });
 
-var request = https.request({
+let request = https.request({
     path: "/"
 }, function(res) {
     res.on("error", function(err) {
