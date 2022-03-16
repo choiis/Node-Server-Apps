@@ -1,8 +1,8 @@
 
-# Node js c++ server Monitor 
-* 이 프로젝트는 https://github.com/choiis/Cpp-Server 의 Server.exe를 모니터링합니다  
-* SQL Server와 Redis가 있어야 backend실행이 됩니다  
-* SQL Server 테이블 정보는 sql/ChatTable.sql 참고
+# Node js C++ server Monitor 
+* This project monitors Server.exe at https://github.com/choiis/Cpp-Server
+* SQL Server and Redis are required to run the backend.
+* There is table information in sql/ChatTable.sql. Create it in SQL Server in advance SQL Server
 
 ### backend
 * build
@@ -13,10 +13,11 @@ npm install
 ```bash
 node app.js
 ```
+* Check at https://localhost:9443/
 
-* conf.properties의 exelocation에 Server.exe실행파일 경로를 넣어야 합니다  
-* conf.properties에 SQL Server 접속정보 쓰세요  
-* redis.properties에 Redis 접속정보를 쓰세요
+* You must put the path to the Server.exe executable file in the exelocation of conf.properties.
+* Write SQL Server connection information in conf.properties
+* Write Redis connection information in redis.properties
 
 ### frontend
 * build
@@ -29,4 +30,4 @@ npm install
 npm run server
 ```
 
-* localhost:8080으로 접속하면 backend API로 프록시됩니다
+* When connecting to http://localhost:8080, it is proxied to the backend API.
