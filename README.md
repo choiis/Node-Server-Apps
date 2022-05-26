@@ -27,7 +27,7 @@ npm install
 * run
 
 ```bash
-npm run server
+npm run serve
 ```
 
 * When connecting to http://localhost:8080, it is proxied to the backend API.
