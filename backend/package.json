@@ -30,7 +30,7 @@
         "then-redis": "^2.0.1",
         "winston": "^3.3.3",
         "winston-daily-rotate-file": "^4.5.0",
-        "debug": "~2.6.9",
+        "debug": "~3.1.0",
         "http-errors": "~1.6.3",
         "morgan": "~1.9.1",
         "pug": "3.0.1"
